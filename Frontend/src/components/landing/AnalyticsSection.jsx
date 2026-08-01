@@ -1,12 +1,21 @@
+import { motion } from 'framer-motion'
+
 export default function AnalyticsSection() {
   return (
-    <section id="analytics" style={{ padding: '120px 0', background: 'var(--clr-bg)' }}>
-      <div className="section-container" style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 64,
-        flexWrap: 'wrap'
-      }}>
+    <section id="analytics" style={{ padding: '120px 0', background: 'var(--clr-bg)', overflow: 'hidden' }}>
+      <motion.div 
+        className="section-container" 
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 64,
+          flexWrap: 'wrap'
+        }}
+        initial={{ opacity: 0, x: -40 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.6 }}
+      >
         <div style={{ flex: '1 1 400px' }}>
           <div className="label" style={{ marginBottom: 16 }}>DEEP ANALYTICS</div>
           <h2 className="heading-lg" style={{ marginBottom: 24 }}>
@@ -26,14 +35,20 @@ export default function AnalyticsSection() {
             ].map((item, i) => (
               <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                 <div style={{ marginTop: 4, width: 6, height: 6, borderRadius: '50%', background: 'var(--clr-secondary)' }} />
-                <span style={{ fontSize: 15, color: '#fff', fontWeight: 500 }}>{item}</span>
+                <span style={{ fontSize: 15, color: 'var(--clr-primary)', fontWeight: 500 }}>{item}</span>
               </li>
             ))}
           </ul>
         </div>
 
         {/* Abstract Chart Graphic */}
-        <div style={{ flex: '1 1 500px', display: 'flex', justifyContent: 'center' }}>
+        <motion.div 
+          style={{ flex: '1 1 500px', display: 'flex', justifyContent: 'center' }}
+          initial={{ opacity: 0, x: 40 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
            <div style={{
              width: '100%',
              maxWidth: 520,
@@ -58,8 +73,8 @@ export default function AnalyticsSection() {
                ))}
              </div>
            </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </section>
   )
 }

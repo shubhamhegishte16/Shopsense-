@@ -21,7 +21,10 @@
   padding: 0;
 }
 
-html { scroll-behavior: smooth; }
+html { 
+  scroll-behavior: smooth; 
+  background-color: var(--clr-bg);
+}
 
 body {
   background-color: var(--clr-bg);

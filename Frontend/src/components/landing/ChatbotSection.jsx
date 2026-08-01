@@ -1,9 +1,17 @@
 import { MessageSquare, Sparkles } from 'lucide-react'
+import { motion } from 'framer-motion'
+import ScrollTextReveal from '../originkit/ui/scroll-text-reveal'
 
 export default function ChatbotSection() {
   return (
-    <section id="chatbot" style={{ padding: '120px 0', background: 'var(--clr-bg)' }}>
-      <div className="section-container">
+    <section id="chatbot" style={{ padding: '120px 0', background: 'var(--clr-bg)', overflow: 'hidden' }}>
+      <motion.div 
+        className="section-container"
+        initial={{ opacity: 0, scale: 0.95 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.6 }}
+      >
         <div style={{
           background: 'var(--clr-light-bg)',
           borderRadius: 32,
@@ -21,13 +29,22 @@ export default function ChatbotSection() {
               <span className="label" style={{ color: 'var(--clr-primary)' }}>AI SHOPPING ASSISTANT</span>
             </div>
             
-            <h2 className="heading-lg" style={{ color: 'var(--clr-bg)', marginBottom: 24 }}>
-              Just ask your data.
-            </h2>
+            <ScrollTextReveal
+              text="Just ask your data."
+              tag="h2"
+              color="var(--clr-primary)"
+              font={{
+                fontSize: "clamp(32px, 4vw, 52px)",
+                fontWeight: "800",
+                lineHeight: "1.15",
+                textAlign: "left",
+              }}
+              style={{ marginBottom: 24 }}
+            />
             <p className="body-md" style={{ color: 'var(--clr-mid)', marginBottom: 32 }}>
               Don't want to dig through charts? Just ask our natural language chatbot. It knows your entire shopping history across all stores.
             </p>
-            <button className="btn-primary" style={{ background: 'var(--clr-bg)' }}>
+            <button className="btn-primary" style={{ background: 'var(--clr-primary)', color: '#fff' }}>
               Try Demo <MessageSquare size={16} />
             </button>
           </div>
@@ -47,7 +64,7 @@ export default function ChatbotSection() {
                 background: 'var(--clr-light-bg)',
                 padding: '12px 16px',
                 borderRadius: '16px 16px 4px 16px',
-                color: 'var(--clr-bg)',
+                color: 'var(--clr-primary)',
                 fontSize: 14,
                 fontWeight: 500
               }}>
@@ -68,7 +85,7 @@ export default function ChatbotSection() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </section>
   )
 }

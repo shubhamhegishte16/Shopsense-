@@ -1,9 +1,16 @@
 import { ShoppingCart } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 export default function Footer() {
   return (
-    <footer style={{ background: '#0D1410', paddingTop: 80, paddingBottom: 40, borderTop: '1px solid rgba(192,200,196,0.1)' }}>
-      <div className="section-container">
+    <footer style={{ background: 'var(--clr-primary)', paddingTop: 80, paddingBottom: 40, borderTop: '1px solid rgba(192,200,196,0.1)' }}>
+      <motion.div 
+        className="section-container"
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.6 }}
+      >
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 64, marginBottom: 80 }}>
           
           <div style={{ flex: '2 1 300px' }}>
@@ -70,7 +77,7 @@ export default function Footer() {
             <a href="#" style={{ color: 'var(--clr-muted)', textDecoration: 'none', fontSize: 13 }}>LinkedIn</a>
           </div>
         </div>
-      </div>
+      </motion.div>
     </footer>
   )
 }

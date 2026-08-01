@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ShoppingCart, Zap, BarChart2, LogIn } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -37,8 +38,8 @@ export default function Navbar() {
       }}
     >
       {/* Logo */}
-      <a
-        href="/"
+      <Link
+        to="/"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -61,7 +62,7 @@ export default function Navbar() {
         <span style={{ fontWeight: 700, fontSize: 17, color: 'var(--clr-text)', letterSpacing: '-0.3px' }}>
           ShopSense <span style={{ color: 'var(--clr-muted)', fontWeight: 400 }}>AI</span>
         </span>
-      </a>
+      </Link>
 
       {/* Nav links — desktop */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 32 }} className="hidden md:flex">
@@ -91,18 +92,16 @@ export default function Navbar() {
 
       {/* CTAs */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginLeft: 40 }}>
-        <a href="/login" className="btn-outline" style={{ padding: '9px 20px', fontSize: 14 }}>
+        <Link to="/login" className="btn-outline" style={{ padding: '9px 20px', fontSize: 14 }}>
           Login
-        </a>
-        <motion.a
-          href="/signup"
+        </Link>
+        <Link
+          to="/signup"
           className="btn-primary"
           style={{ padding: '9px 20px', fontSize: 14 }}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
         >
           Get Started
-        </motion.a>
+        </Link>
       </div>
     </motion.nav>
   )

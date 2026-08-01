@@ -1,4 +1,6 @@
 import { Zap, ScanLine, Clock, Target } from 'lucide-react'
+import { motion } from 'framer-motion'
+import ScrollTextReveal from '../originkit/ui/scroll-text-reveal'
 
 const FEATURES = [
   {
@@ -25,13 +27,27 @@ const FEATURES = [
 
 export default function FeaturesSection() {
   return (
-    <section id="features" style={{ padding: '120px 0', background: 'var(--clr-light-bg)' }}>
-      <div className="section-container">
+    <section id="features" style={{ padding: '120px 0', background: 'var(--clr-light-bg)', overflow: 'hidden' }}>
+      <motion.div 
+        className="section-container"
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.6 }}
+      >
         <div style={{ textAlign: 'center', marginBottom: 72, maxWidth: 640, margin: '0 auto 72px' }}>
-          <h2 className="heading-lg" style={{ color: 'var(--clr-bg)', marginBottom: 20 }}>
-            Everything you need to <br />
-            shop smarter.
-          </h2>
+          <ScrollTextReveal
+            text="Everything you need to shop smarter."
+            tag="h2"
+            color="var(--clr-primary)"
+            font={{
+              fontSize: "clamp(32px, 4vw, 52px)",
+              fontWeight: "800",
+              lineHeight: "1.15",
+              textAlign: "center",
+            }}
+            style={{ marginBottom: 20 }}
+          />
           <p className="body-md" style={{ color: 'var(--clr-mid)' }}>
             We combine best-in-class OCR with deep learning to turn your crumpled paper receipts and email invoices into a powerful financial database.
           </p>
@@ -39,7 +55,7 @@ export default function FeaturesSection() {
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gridTemplateColumns: 'repeat(4, 1fr)',
           gap: 24,
         }}>
           {FEATURES.map((feat, i) => (
@@ -62,7 +78,7 @@ export default function FeaturesSection() {
               }}>
                 <feat.icon size={24} color="var(--clr-primary)" strokeWidth={1.5} />
               </div>
-              <h3 style={{ fontSize: 19, fontWeight: 700, color: 'var(--clr-bg)', marginBottom: 12 }}>
+              <h3 style={{ fontSize: 19, fontWeight: 700, color: 'var(--clr-primary)', marginBottom: 12 }}>
                 {feat.title}
               </h3>
               <p style={{ fontSize: 14.5, lineHeight: 1.6, color: 'var(--clr-mid)' }}>
@@ -71,7 +87,7 @@ export default function FeaturesSection() {
             </div>
           ))}
         </div>
-      </div>
+      </motion.div>
     </section>
   )
 }

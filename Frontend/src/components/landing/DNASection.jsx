@@ -1,11 +1,29 @@
+import { motion } from 'framer-motion'
+import ScrollTextReveal from '../originkit/ui/scroll-text-reveal'
+
 export default function DNASection() {
   return (
-    <section style={{ padding: '120px 0', background: 'var(--clr-primary)' }}>
-      <div className="section-container" style={{ textAlign: 'center' }}>
+    <section style={{ padding: '120px 0', background: 'var(--clr-primary)', overflow: 'hidden' }}>
+      <motion.div 
+        className="section-container" style={{ textAlign: 'center' }}
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.6 }}
+      >
         <div className="label" style={{ color: 'var(--clr-light-bg)', marginBottom: 16 }}>SHOPPING DNA</div>
-        <h2 className="heading-lg" style={{ color: '#fff', marginBottom: 24 }}>
-          Discover your true buyer persona.
-        </h2>
+        <ScrollTextReveal
+          text="Discover your true buyer persona."
+          tag="h2"
+          color="#fff"
+          font={{
+            fontSize: "clamp(32px, 4vw, 52px)",
+            fontWeight: "800",
+            lineHeight: "1.15",
+            textAlign: "center",
+          }}
+          style={{ marginBottom: 24 }}
+        />
         <p className="body-md" style={{ color: 'rgba(255,255,255,0.8)', maxWidth: 600, margin: '0 auto 64px' }}>
           Based on the nutritional value, price points, and brands you buy, ShopSense AI builds a comprehensive profile of what kind of shopper you are.
         </p>
@@ -36,7 +54,7 @@ export default function DNASection() {
             </div>
           ))}
         </div>
-      </div>
+      </motion.div>
     </section>
   )
 }

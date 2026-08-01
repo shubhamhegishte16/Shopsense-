@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Plus, Minus } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import ScrollTextReveal from '../originkit/ui/scroll-text-reveal'
 
 const FAQS = [
   {
@@ -25,10 +26,26 @@ export default function FAQSection() {
   const [open, setOpen] = useState(0)
 
   return (
-    <section style={{ padding: '120px 0', background: 'var(--clr-light-bg)' }}>
-      <div className="section-container" style={{ maxWidth: 800 }}>
+    <section style={{ padding: '120px 0', background: 'var(--clr-light-bg)', overflow: 'hidden' }}>
+      <motion.div 
+        className="section-container" style={{ maxWidth: 800 }}
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.6 }}
+      >
         <div style={{ textAlign: 'center', marginBottom: 64 }}>
-          <h2 className="heading-lg" style={{ color: 'var(--clr-bg)' }}>Frequently Asked Questions</h2>
+          <ScrollTextReveal
+            text="Frequently Asked Questions"
+            tag="h2"
+            color="var(--clr-primary)"
+            font={{
+              fontSize: "clamp(32px, 4vw, 52px)",
+              fontWeight: "800",
+              lineHeight: "1.15",
+              textAlign: "center",
+            }}
+          />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -52,17 +69,17 @@ export default function FAQSection() {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                 }}>
-                  <span style={{ fontSize: 17, fontWeight: 600, color: 'var(--clr-bg)' }}>
+                  <span style={{ fontSize: 17, fontWeight: 600, color: 'var(--clr-primary)' }}>
                     {faq.q}
                   </span>
                   <div style={{
                     width: 32, height: 32,
                     borderRadius: '50%',
-                    background: isOpen ? 'var(--clr-bg)' : 'rgba(0,0,0,0.04)',
+                    background: isOpen ? 'var(--clr-primary)' : 'rgba(0,0,0,0.04)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     transition: 'all 0.2s'
                   }}>
-                    {isOpen ? <Minus size={16} color="#fff" /> : <Plus size={16} color="var(--clr-bg)" />}
+                    {isOpen ? <Minus size={16} color="#fff" /> : <Plus size={16} color="var(--clr-primary)" />}
                   </div>
                 </div>
                 
@@ -84,7 +101,7 @@ export default function FAQSection() {
             )
           })}
         </div>
-      </div>
+      </motion.div>
     </section>
   )
 }

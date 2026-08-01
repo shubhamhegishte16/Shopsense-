@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, ScanLine, Brain, BarChart3, ShieldAlert, Dna } from 'lucide-react'
 import { useScrollProgress } from '../../hooks/useScrollProgress'
 import FrameSequence from './FrameSequence'
+import ScrollTextReveal from '../originkit/ui/scroll-text-reveal'
 
 // ─── Chapter definitions ──────────────────────────────────────────────────────
 const CHAPTERS = [
@@ -310,7 +311,7 @@ export default function ScrollHeroSection() {
         {/* Left-side gradient for text legibility during hero */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 1,
-          background: 'linear-gradient(to right, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.7) 42%, transparent 65%)',
+          background: 'white',
           opacity: heroOpacity,
           pointerEvents: 'none',
         }} />
@@ -332,31 +333,22 @@ export default function ScrollHeroSection() {
           }}
         >
           {/* Label */}
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '6px 14px',
-            background: 'rgba(21,69,57,0.4)',
-            border: '1px solid rgba(192,200,196,0.25)',
-            borderRadius: 999,
-            marginBottom: 28,
-            width: 'fit-content',
-          }}>
-            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#2F5D50' }} />
-            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--clr-muted)' }}>
-              AI-Powered Shopping Intelligence
-            </span>
-          </div>
+          
 
           {/* Headline */}
-          <h1 className="heading-xl" style={{ marginBottom: 20, maxWidth: 480 }}>
-            Shop Smarter with AI.
-            <br />
-            <span className="green-text-gradient">Every Receipt</span>
-            <br />
-            Tells a Story.
-          </h1>
+          <div style={{ marginBottom: 20, maxWidth: 480 }}>
+            <ScrollTextReveal
+              text="Shop Smarter with AI. Every Receipt Tells a Story."
+              tag="h1"
+              color="var(--clr-text)"
+              font={{
+                fontSize: "clamp(36px, 4.5vw, 56px)",
+                fontWeight: "800",
+                lineHeight: "1.1",
+                textAlign: "left",
+              }}
+            />
+          </div>
 
           {/* Subtext */}
           <p className="body-lg" style={{ maxWidth: 400, marginBottom: 36 }}>
