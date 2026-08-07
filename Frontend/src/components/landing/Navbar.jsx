@@ -56,12 +56,19 @@ export default function Navbar() {
           alignItems: 'center',
           justifyContent: 'center',
           border: '1px solid rgba(192,200,196,0.25)',
+          flexShrink: 0
         }}>
           <ShoppingCart size={18} color="#fff" strokeWidth={1.75} />
         </div>
-        <span style={{ fontWeight: 700, fontSize: 17, color: 'var(--clr-text)', letterSpacing: '-0.3px' }}>
-          ShopSense <span style={{ color: 'var(--clr-muted)', fontWeight: 400 }}>AI</span>
-        </span>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <span style={{
+            fontSize: 17,
+            fontWeight: 800,
+            color: 'var(--clr-primary, #154539)',
+            letterSpacing: '-0.5px',
+            lineHeight: 1.1,
+          }}>ShopSense AI</span>
+        </div>
       </Link>
 
       {/* Nav links — desktop */}

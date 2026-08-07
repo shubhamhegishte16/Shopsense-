@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import { ShoppingBag, Mail, Lock, User, Eye, EyeOff, ArrowRight, CheckCircle2, Zap } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import ParticleText from '../components/originkit/ui/particle-text'
 import MagneticButton from '../components/originkit/ui/magnetic-button'
 
 export default function Signup() {
@@ -87,12 +88,22 @@ export default function Signup() {
               alignItems: 'center',
               justifyContent: 'center',
               boxShadow: '0 8px 20px rgba(21,69,57,0.2)',
+              flexShrink: 0
             }}>
               <ShoppingBag size={22} color="#ffffff" />
             </div>
             <div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--clr-primary, #154539)', letterSpacing: '-0.5px' }}>
-                ShopSense <span style={{ color: '#10B981', fontWeight: 600 }}>AI</span>
+              <div style={{ width: 220, height: 32, display: 'flex', alignItems: 'center' }}>
+                <ParticleText 
+                  text="ShopSense AI"
+                  colors={["#154539", "#10B981", "#0F172A"]}
+                  fontSize={26}
+                  particleSize={8}
+                  particleCount={45}
+                  minWidth={220}
+                  minHeight={32}
+                  transition={{ type: "tween", duration: 0, ease: "linear" }}
+                />
               </div>
               <div style={{ fontSize: 13, color: 'var(--clr-mid, #6B7280)', fontWeight: 500 }}>
                 Smarter Shopping. Better Decisions.
@@ -430,9 +441,8 @@ export default function Signup() {
               </label>
             </div>
 
-            {/* Originkit Magnetic Button */}
             <div style={{ marginTop: 12 }}>
-              <MagneticButton label="Create Account">
+              <MagneticButton label="Create Account" type="submit">
                 <ArrowRight size={18} />
               </MagneticButton>
             </div>
@@ -451,3 +461,4 @@ export default function Signup() {
     </div>
   )
 }
+

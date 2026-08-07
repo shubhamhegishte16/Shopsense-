@@ -20,12 +20,16 @@ export default function Footer() {
                 background: 'var(--clr-primary)',
                 borderRadius: 8,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0
               }}>
                 <ShoppingCart size={16} color="#fff" />
               </div>
-              <span style={{ fontWeight: 700, fontSize: 18, color: '#fff', letterSpacing: '-0.3px' }}>
-                ShopSense <span style={{ color: 'var(--clr-muted)', fontWeight: 400 }}>AI</span>
-              </span>
+              <span style={{
+                fontSize: 16,
+                fontWeight: 800,
+                color: '#FFFFFF',
+                letterSpacing: '-0.4px',
+              }}>ShopSense AI</span>
             </div>
             <p className="body-md" style={{ maxWidth: 300, fontSize: 14 }}>
               The first personal shopping intelligence platform. Turning your receipts into actionable financial insights.
