@@ -1,11 +1,14 @@
 import { useState, useRef } from 'react'
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
-import { ShoppingBag, Mail, Lock, User, Eye, EyeOff, ArrowRight, CheckCircle2, Zap } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { ShoppingBag, Mail, Lock, User, Eye, EyeOff, ArrowRight, CheckCircle2, Zap, AlertCircle } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
 import ParticleText from '../components/originkit/ui/particle-text'
 import MagneticButton from '../components/originkit/ui/magnetic-button'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+
 export default function Signup() {
+  const navigate = useNavigate()
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -13,6 +16,9 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [agreed, setAgreed] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   // 3D Perspective Tilt Card logic for the left side Mobile Showcase
   const cardRef = useRef(null)
@@ -43,17 +49,49 @@ export default function Signup() {
     y.set(0)
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setError('')
+    setSuccess('')
+
     if (password !== confirmPassword) {
-      alert("Passwords do not match!")
+      setError('Passwords do not match!')
       return
     }
     if (!agreed) {
-      alert("Please agree to the Terms of Service and Privacy Policy.")
+      setError('Please agree to the Terms of Service and Privacy Policy.')
       return
     }
-    alert(`Account created for ${fullName}!`)
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const res = await fetch(`${API_URL}/api/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName, email, password }),
+      })
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.message || 'Something went wrong. Please try again.')
+        return
+      }
+
+      // Store token
+      localStorage.setItem('shopsense_token', data.token)
+      localStorage.setItem('shopsense_user', JSON.stringify(data.user))
+
+      setSuccess('Account created successfully! Redirecting...')
+      setTimeout(() => navigate('/'), 1500)
+    } catch (err) {
+      setError('Network error. Please check your connection and try again.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -441,8 +479,50 @@ export default function Signup() {
               </label>
             </div>
 
+            {/* Error / Success Banner */}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '12px 16px',
+                  borderRadius: 12,
+                  background: 'rgba(239,68,68,0.08)',
+                  border: '1px solid rgba(239,68,68,0.25)',
+                  color: '#DC2626',
+                  fontSize: 14,
+                }}
+              >
+                <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                {error}
+              </motion.div>
+            )}
+            {success && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '12px 16px',
+                  borderRadius: 12,
+                  background: 'rgba(16,185,129,0.08)',
+                  border: '1px solid rgba(16,185,129,0.25)',
+                  color: '#059669',
+                  fontSize: 14,
+                }}
+              >
+                <CheckCircle2 size={16} style={{ flexShrink: 0 }} />
+                {success}
+              </motion.div>
+            )}
+
             <div style={{ marginTop: 12 }}>
-              <MagneticButton label="Create Account" type="submit">
+              <MagneticButton label={isLoading ? 'Creating Account...' : 'Create Account'} type="submit" disabled={isLoading}>
                 <ArrowRight size={18} />
               </MagneticButton>
             </div>
