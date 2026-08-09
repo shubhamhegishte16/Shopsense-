@@ -5,6 +5,9 @@ import Signup from './pages/Signup'
 import Dashboard from './pages/user/Dashboard'
 import Receipts from './pages/user/Receipts'
 import Optimizer from './pages/user/Optimizer'
+import Compare from './pages/user/Compare'
+import Pantry from './pages/user/Pantry'
+import Insights from './pages/user/Insights'
 
 export default function App() {
   return (
@@ -16,6 +19,9 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/receipts" element={<Receipts />} />
         <Route path="/optimizer" element={<Optimizer />} />
+        <Route path="/compare" element={<Compare />} />
+        <Route path="/pantry" element={<Pantry />} />
+        <Route path="/insights" element={<Insights />} />
       </Routes>
     </Router>
   )

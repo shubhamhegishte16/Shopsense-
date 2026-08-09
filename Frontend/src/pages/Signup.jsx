@@ -116,36 +116,11 @@ export default function Signup() {
         {/* ── LEFT COLUMN: Branding, Features & 3D Mobile Showcase ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
           {/* Logo & Tagline */}
-          <Link to="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 12 }}>
-            <div style={{
-              width: 44,
-              height: 44,
-              borderRadius: 12,
-              background: 'var(--clr-primary, #154539)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 8px 20px rgba(21,69,57,0.2)',
-              flexShrink: 0
-            }}>
-              <ShoppingBag size={22} color="#ffffff" />
-            </div>
+          <Link to="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+            <img src="/Shopsense logo.png" alt="ShopSense AI" style={{ height: 40, objectFit: 'contain' }} />
             <div>
-              <div style={{ width: 220, height: 32, display: 'flex', alignItems: 'center' }}>
-                <ParticleText 
-                  text="ShopSense AI"
-                  colors={["#154539", "#10B981", "#0F172A"]}
-                  fontSize={26}
-                  particleSize={8}
-                  particleCount={45}
-                  minWidth={220}
-                  minHeight={32}
-                  transition={{ type: "tween", duration: 0, ease: "linear" }}
-                />
-              </div>
-              <div style={{ fontSize: 13, color: 'var(--clr-mid, #6B7280)', fontWeight: 500 }}>
-                Smarter Shopping. Better Decisions.
-              </div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.5px', lineHeight: 1.1 }}>ShopSense</div>
+              <div style={{ fontSize: 12, color: '#6B7280', fontWeight: 500 }}>Smarter Shopping. Better Decisions.</div>
             </div>
           </Link>
 

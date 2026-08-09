@@ -42,25 +42,20 @@ export default function Sidebar() {
       fontFamily: "'Inter', sans-serif"
     }}>
       {/* Brand Logo */}
-      <div style={{ padding: '0 28px', marginBottom: 40, display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div style={{
-          width: 40,
-          height: 40,
-          borderRadius: 12,
-          background: '#154539',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 8px 16px rgba(21,69,57,0.15)'
-        }}>
-          <ShoppingBag size={20} color="#FFFFFF" />
-        </div>
+      <div style={{ padding: '0 28px', marginBottom: 40, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <img 
+          src="/Shopsense logo.png" 
+          alt="ShopSense AI" 
+          style={{ height: 36, objectFit: 'contain' }} 
+        />
         <div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.5px' }}>
-            ShopSense <span style={{ color: '#10B981', fontSize: 12, verticalAlign: 'top', background: '#D1FAE5', padding: '2px 6px', borderRadius: 4, marginLeft: 4 }}>AI</span>
+          <div style={{ fontSize: 18, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.5px', lineHeight: 1.1 }}>
+            ShopSense
           </div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#10B981', background: '#D1FAE5', padding: '1px 6px', borderRadius: 4, display: 'inline-block', marginTop: 2 }}>AI</div>
         </div>
       </div>
+
 
       {/* Navigation */}
       <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, padding: '0 16px' }}>
