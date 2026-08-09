@@ -1,9 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Search, Bell, RotateCw } from 'lucide-react';
 import Sidebar from '../../components/User/Sidebar';
 import { PantryStats, CategoryTabs, PantryControls, PantryGrid, ExpiryCalendarPanel, SmartAlertsPanel, PantryInsightsPanel } from '../../components/User/PantryWidgets';
 
-function PantryTopNav() {
+const API_BASE = 'http://localhost:5000/api';
+
+function getAuthHeaders() {
+  const token = localStorage.getItem('shopsense_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+function PantryTopNav({ onRefresh }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -33,7 +40,7 @@ function PantryTopNav() {
           <Bell size={20} color="#334155" />
           <div style={{ position: 'absolute', top: -2, right: -2, background: '#154539', color: '#FFF', fontSize: 9, fontWeight: 800, width: 16, height: 16, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #FAFCFC' }}>3</div>
         </button>
-        <button style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: '#154539', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+        <button onClick={onRefresh} style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: '#154539', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
           <RotateCw size={18} color="#FFFFFF" />
         </button>
       </div>
@@ -47,28 +54,50 @@ function HomeIcon(props) {
 
 export default function Pantry() {
   const [activeTab, setActiveTab] = useState('All Items');
+  const [pantryItems, setPantryItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchPantryItems = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_BASE}/pantry`, { headers: getAuthHeaders() });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to fetch pantry items');
+      setPantryItems(data.items || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPantryItems();
+  }, [fetchPantryItems]);
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#FAFCFC', fontFamily: "'Inter', sans-serif" }}>
       <Sidebar />
 
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', height: '100vh' }}>
-        <PantryTopNav />
+        <PantryTopNav onRefresh={fetchPantryItems} />
 
         <div style={{ padding: '32px 40px', display: 'flex', gap: 32 }}>
           {/* Main Content */}
-          <div style={{ flex: 1 }}>
-            <PantryStats />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <PantryStats items={pantryItems} loading={loading} />
             <CategoryTabs active={activeTab} setActive={setActiveTab} />
             <PantryControls />
-            <PantryGrid />
+            <PantryGrid items={pantryItems} loading={loading} error={error} onRetry={fetchPantryItems} activeCategory={activeTab} />
           </div>
 
           {/* Right Panel */}
           <div style={{ width: 300, flexShrink: 0 }}>
-            <ExpiryCalendarPanel />
-            <SmartAlertsPanel />
-            <PantryInsightsPanel />
+            <ExpiryCalendarPanel items={pantryItems} />
+            <SmartAlertsPanel items={pantryItems} />
+            <PantryInsightsPanel items={pantryItems} />
           </div>
         </div>
       </main>

@@ -2,13 +2,20 @@ import { useState } from 'react';
 import { Search, Plus, Filter, ChevronDown, MoreVertical, ChevronLeft, ChevronRight, Calendar, Clock, ShoppingCart } from 'lucide-react';
 
 // ─── Stat Cards ─────────────────────────────────────────────────────────────────
-export function PantryStats() {
+export function PantryStats({ items = [], loading }) {
+  const totalItems = items.length;
+  const expiringSoon = items.filter(i => i.status === 'expiring_soon' || (i.estimatedExpiryDate && new Date(i.estimatedExpiryDate) < new Date(Date.now() + 7*24*60*60*1000))).length;
+  const lowStock = items.filter(i => i.status === 'low_stock' || i.quantity <= 1).length;
+  const outOfStock = items.filter(i => i.status === 'consumed' || i.quantity === 0).length;
+  // Estimate value (mocked for now unless price is stored on PantryItem)
+  const totalValue = items.reduce((acc, item) => acc + (item.quantity * 50), 0); 
+
   const stats = [
-    { label: 'Total Items', value: '58', sub: 'Items in pantry', valueColor: '#0F172A' },
-    { label: 'Expiring Soon', value: '7', sub: 'Within 7 days', valueColor: '#F97316' },
-    { label: 'Low Stock', value: '12', sub: 'Need to restock', valueColor: '#EF4444' },
-    { label: 'Out of Stock', value: '5', sub: 'Items', valueColor: '#8B5CF6' },
-    { label: 'Total Value', value: '₹2,846', sub: 'Estimated value', valueColor: '#10B981', wide: true },
+    { label: 'Total Items', value: loading ? '-' : totalItems, sub: 'Items in pantry', valueColor: '#0F172A' },
+    { label: 'Expiring Soon', value: loading ? '-' : expiringSoon, sub: 'Within 7 days', valueColor: '#F97316' },
+    { label: 'Low Stock', value: loading ? '-' : lowStock, sub: 'Need to restock', valueColor: '#EF4444' },
+    { label: 'Out of Stock', value: loading ? '-' : outOfStock, sub: 'Items', valueColor: '#8B5CF6' },
+    { label: 'Est. Value', value: loading ? '-' : `₹${totalValue.toLocaleString('en-IN')}`, sub: 'Estimated value', valueColor: '#10B981', wide: true },
   ];
 
   return (
@@ -123,7 +130,13 @@ function PantryItemCard({ item }) {
           <img src={item.img} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.target.style.display='none'; }} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingRight: 20 }}>{item.name}</div>
+          <div style={{ 
+            fontSize: 15, fontWeight: 700, color: '#0F172A', marginBottom: 2, 
+            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', 
+            overflow: 'hidden', paddingRight: 20 
+          }}>
+            {item.name}
+          </div>
           <div style={{ fontSize: 12, color: '#94A3B8', marginBottom: 10 }}>{item.qty}</div>
           <StatusBadge status={item.status} />
         </div>
@@ -140,22 +153,68 @@ function PantryItemCard({ item }) {
 }
 
 // ─── Item Grid ───────────────────────────────────────────────────────────────────
-export function PantryGrid() {
-  const items = [
-    { name: 'Aashirvaad Atta', qty: '5 kg', status: 'In Stock', exp: '24 Aug 2025', pct: 70, img: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=120&h=120&q=80' },
-    { name: 'India Gate Basmati Rice', qty: '1 kg', status: 'In Stock', exp: '12 Oct 2025', pct: 85, img: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=120&h=120&q=80' },
-    { name: 'Fortune Sunlite Oil', qty: '1 L', status: 'Low Stock', exp: '05 Aug 2025', pct: 20, img: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=120&h=120&q=80' },
-    { name: 'Mother Dairy Milk', qty: '1 L', status: 'Expiring Soon', exp: '29 May 2025', pct: 10, img: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=120&h=120&q=80' },
-    { name: 'Maggi 2-Min Noodles', qty: '280 g', status: 'Out of Stock', exp: null, pct: 0, img: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=120&h=120&q=80' },
-  ];
+export function PantryGrid({ items = [], loading, error, onRetry, activeCategory }) {
+  if (loading) {
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+        {[...Array(6)].map((_, i) => (
+          <div key={i} style={{ background: '#F8FAFC', borderRadius: 16, height: 180, animation: 'pulse 1.5s ease-in-out infinite' }} />
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ textAlign: 'center', padding: '48px 24px', background: '#FEF2F2', borderRadius: 16, border: '1px solid #FECACA' }}>
+        <div style={{ fontSize: 14, color: '#991B1B', marginBottom: 16 }}>{error}</div>
+        <button onClick={onRetry} style={{ background: '#154539', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 20px', cursor: 'pointer' }}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  // Map categories from tabs to receipt categories if needed
+  const categoryMap = {
+    'All Items': null,
+    'Grains & Pulses': 'Groceries',
+    'Snacks & Beverages': 'Groceries',
+    'Dairy & Eggs': 'Groceries',
+    'Spices & Oils': 'Groceries',
+  };
+
+  const mappedCat = categoryMap[activeCategory];
+  const filteredItems = items.filter(item => {
+    if (activeCategory === 'All Items') return true;
+    return mappedCat ? item.category === mappedCat : item.category === activeCategory;
+  });
+
+  const formattedItems = filteredItems.map(item => ({
+    name: item.name,
+    qty: `${item.quantity || 1} ${item.unit || 'unit'}`,
+    status: item.status === 'low_stock' || item.quantity <= 1 ? 'Low Stock' : item.status === 'consumed' ? 'Out of Stock' : 'In Stock',
+    exp: item.estimatedExpiryDate ? new Date(item.estimatedExpiryDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : null,
+    pct: item.status === 'consumed' ? 0 : item.status === 'low_stock' || item.quantity <= 1 ? 25 : 85,
+    img: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=120&h=120&q=80' // generic grocery image
+  }));
+
+  if (formattedItems.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', padding: '64px 24px', background: '#F8FAFC', borderRadius: 16, border: '2px dashed #E2E8F0' }}>
+        <div style={{ fontSize: 16, fontWeight: 700, color: '#94A3B8', marginBottom: 8 }}>No items found</div>
+        <div style={{ fontSize: 13, color: '#CBD5E1' }}>Try uploading a receipt or adding items manually</div>
+      </div>
+    );
+  }
 
   return (
     <div>
-      <div style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', marginBottom: 16 }}>All Items (58)</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
-        {items.map((item, i) => <PantryItemCard key={i} item={item} />)}
+      <div style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', marginBottom: 16 }}>{activeCategory} ({formattedItems.length})</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, marginBottom: 24 }}>
+        {formattedItems.slice(0, 9).map((item, i) => <PantryItemCard key={i} item={item} />)}
       </div>
-      <Pagination />
+      {formattedItems.length > 9 && <Pagination />}
     </div>
   );
 }
@@ -186,12 +245,29 @@ const pgBtn = (active) => ({
 });
 
 // ─── Right: Expiry Calendar ──────────────────────────────────────────────────────
-export function ExpiryCalendarPanel() {
+export function ExpiryCalendarPanel({ items = [] }) {
   const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const dates = [
-    { d: 26, dot: '#10B981' }, { d: 27, dot: '#10B981' }, { d: 28, dot: '#EF4444' },
-    { d: 29, dot: null, active: true }, { d: 30, dot: '#10B981' }, { d: 31, dot: null }, { d: 1, dot: null, dim: true }
-  ];
+  
+  // Calculate which days have expiring items this week
+  const today = new Date();
+  const weekDates = Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() - today.getDay() + i + 1); // Monday to Sunday
+    
+    // Check if any items expire on this day
+    const hasExpiring = items.some(item => {
+      if (!item.estimatedExpiryDate) return false;
+      const expD = new Date(item.estimatedExpiryDate);
+      return expD.getDate() === d.getDate() && expD.getMonth() === d.getMonth();
+    });
+
+    return { 
+      d: d.getDate(), 
+      dot: hasExpiring ? '#EF4444' : null, 
+      active: d.getDate() === today.getDate(),
+      dim: d.getMonth() !== today.getMonth() 
+    };
+  });
 
   return (
     <div style={{ background: '#FFFFFF', border: '1px solid #F1F5F9', borderRadius: 20, padding: 24, marginBottom: 20 }}>
@@ -200,12 +276,12 @@ export function ExpiryCalendarPanel() {
         <a href="#" style={{ fontSize: 12, color: '#10B981', fontWeight: 600, textDecoration: 'none' }}>View Calendar →</a>
       </div>
 
-      <div style={{ fontSize: 14, fontWeight: 600, color: '#0F172A', marginBottom: 12 }}>May</div>
+      <div style={{ fontSize: 14, fontWeight: 600, color: '#0F172A', marginBottom: 12 }}>{today.toLocaleString('default', { month: 'long' })}</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 8 }}>
         {days.map(d => <div key={d} style={{ fontSize: 10, color: '#94A3B8', fontWeight: 600, textAlign: 'center' }}>{d}</div>)}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 16 }}>
-        {dates.map((item, i) => (
+        {weekDates.map((item, i) => (
           <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
             <div style={{
               width: 32, height: 32, borderRadius: '50%',
@@ -235,7 +311,10 @@ export function ExpiryCalendarPanel() {
 }
 
 // ─── Right: Smart Alerts ─────────────────────────────────────────────────────────
-export function SmartAlertsPanel() {
+export function SmartAlertsPanel({ items = [] }) {
+  const expiringCount = items.filter(i => i.status === 'expiring_soon' || (i.estimatedExpiryDate && new Date(i.estimatedExpiryDate) < new Date(Date.now() + 7*24*60*60*1000))).length;
+  const lowStockCount = items.filter(i => i.status === 'low_stock' || i.quantity <= 1).length;
+
   return (
     <div style={{ background: '#FFFFFF', border: '1px solid #F1F5F9', borderRadius: 20, padding: 24, marginBottom: 20 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
@@ -249,8 +328,10 @@ export function SmartAlertsPanel() {
             <Clock size={18} color="#D97706" />
           </div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#0F172A', marginBottom: 4 }}>7 items are expiring soon.</div>
-            <a href="#" style={{ fontSize: 12, color: '#10B981', fontWeight: 600, textDecoration: 'none' }}>Check now →</a>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#0F172A', marginBottom: 4 }}>
+              {expiringCount > 0 ? `${expiringCount} items are expiring soon.` : 'No items expiring soon.'}
+            </div>
+            {expiringCount > 0 && <a href="#" style={{ fontSize: 12, color: '#10B981', fontWeight: 600, textDecoration: 'none' }}>Check now →</a>}
           </div>
         </div>
         <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
@@ -258,8 +339,10 @@ export function SmartAlertsPanel() {
             <CartIcon size={18} color="#DC2626" />
           </div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#0F172A', marginBottom: 4 }}>You are low on 12 items.</div>
-            <a href="#" style={{ fontSize: 12, color: '#10B981', fontWeight: 600, textDecoration: 'none' }}>Restock now →</a>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#0F172A', marginBottom: 4 }}>
+              {lowStockCount > 0 ? `You are low on ${lowStockCount} items.` : 'Stock levels are good.'}
+            </div>
+            {lowStockCount > 0 && <a href="#" style={{ fontSize: 12, color: '#10B981', fontWeight: 600, textDecoration: 'none' }}>Restock now →</a>}
           </div>
         </div>
       </div>
@@ -268,7 +351,9 @@ export function SmartAlertsPanel() {
 }
 
 // ─── Right: Pantry Insights ──────────────────────────────────────────────────────
-export function PantryInsightsPanel() {
+export function PantryInsightsPanel({ items = [] }) {
+  const itemsAddedThisMonth = items.filter(i => new Date(i.createdAt).getMonth() === new Date().getMonth()).length;
+
   return (
     <div style={{ background: '#FFFFFF', border: '1px solid #F1F5F9', borderRadius: 20, padding: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
@@ -283,7 +368,7 @@ export function PantryInsightsPanel() {
           </div>
           <div>
             <div style={{ fontSize: 11, color: '#94A3B8', fontWeight: 600 }}>ITEMS ADDED</div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: '#0F172A' }}>12</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: '#0F172A' }}>{itemsAddedThisMonth}</div>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -292,7 +377,7 @@ export function PantryInsightsPanel() {
           </div>
           <div>
             <div style={{ fontSize: 11, color: '#94A3B8', fontWeight: 600 }}>ITEMS USED</div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: '#0F172A' }}>18</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: '#0F172A' }}>0</div>
           </div>
         </div>
       </div>
