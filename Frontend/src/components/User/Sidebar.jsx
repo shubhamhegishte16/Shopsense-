@@ -10,7 +10,9 @@ import {
   PieChart, 
   MessageSquare, 
   Crown,
-  ChevronRight
+  ChevronRight,
+  User,
+  Settings
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -22,6 +24,8 @@ const navItems = [
   { id: 'pantry', label: 'Pantry', icon: Package, path: '/pantry' },
   { id: 'insights', label: 'Insights', icon: PieChart, path: '/insights' },
   { id: 'chat', label: 'Chat AI', icon: MessageSquare, path: '/chat' },
+  { id: 'profile', label: 'Profile', icon: User, path: '/profile' },
+  { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
 ];
 
 export default function Sidebar() {
@@ -101,84 +105,40 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Premium Upgrade Card */}
-      <div style={{ padding: '0 24px', marginBottom: 24 }}>
-        <div style={{
-          background: 'linear-gradient(135deg, #154539 0%, #0F3028 100%)',
-          borderRadius: 20,
-          padding: '24px 20px',
-          color: '#FFFFFF',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          {/* Abstract decoration */}
-          <div style={{
-            position: 'absolute',
-            top: -20,
-            right: -20,
-            width: 80,
-            height: 80,
-            background: 'rgba(255,255,255,0.05)',
-            borderRadius: '50%'
-          }} />
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <Crown size={20} color="#FBBF24" fill="#FBBF24" />
-            <span style={{ fontWeight: 700, fontSize: 15 }}>Go Premium</span>
-          </div>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', lineHeight: 1.5, marginBottom: 16 }}>
-            Unlock advanced AI insights, price alerts, and unlimited scans.
-          </p>
-          <button style={{
-            width: '100%',
-            padding: '10px 0',
-            background: '#FFFFFF',
-            color: '#154539',
-            border: 'none',
-            borderRadius: 10,
-            fontWeight: 700,
-            fontSize: 13,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 6
-          }}>
-            Upgrade Now <ChevronRight size={16} />
-          </button>
-        </div>
-      </div>
+
 
       {/* User Profile */}
-      <div style={{ 
-        padding: '16px 24px', 
-        borderTop: '1px solid #F1F5F9',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        cursor: 'pointer'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            width: 40,
-            height: 40,
-            borderRadius: '50%',
-            background: '#E2E8F0',
-            overflow: 'hidden'
-          }}>
-            <img 
-              src="https://api.dicebear.com/7.x/avataaars/svg?seed=Shubham" 
-              alt="User" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-            />
+      <Link to="/profile" style={{ textDecoration: 'none' }}>
+        <div style={{ 
+          padding: '16px 24px', 
+          borderTop: '1px solid #F1F5F9',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          cursor: 'pointer'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 40,
+              height: 40,
+              borderRadius: '50%',
+              background: '#E2E8F0',
+              overflow: 'hidden'
+            }}>
+              <img 
+                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Shubham" 
+                alt="User" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              />
+            </div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#0F172A' }}>Shubham H.</div>
+              <div style={{ fontSize: 12, color: '#10B981', fontWeight: 500 }}>Free User</div>
+            </div>
           </div>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#0F172A' }}>Shubham H.</div>
-            <div style={{ fontSize: 12, color: '#10B981', fontWeight: 500 }}>Premium User</div>
-          </div>
+          <ChevronRight size={18} color="#94A3B8" />
         </div>
-        <ChevronRight size={18} color="#94A3B8" />
-      </div>
+      </Link>
     </div>
   );
 }

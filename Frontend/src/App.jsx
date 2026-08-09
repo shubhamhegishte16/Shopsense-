@@ -8,6 +8,9 @@ import Optimizer from './pages/user/Optimizer'
 import Compare from './pages/user/Compare'
 import Pantry from './pages/user/Pantry'
 import Insights from './pages/user/Insights'
+import ChatAI from './pages/user/ChatAI'
+import Profile from './pages/user/Profile'
+import Settings from './pages/user/Settings'
 
 export default function App() {
   return (
@@ -22,6 +25,10 @@ export default function App() {
         <Route path="/compare" element={<Compare />} />
         <Route path="/pantry" element={<Pantry />} />
         <Route path="/insights" element={<Insights />} />
+        <Route path="/chat" element={<ChatAI />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/settings/:section" element={<Settings />} />
       </Routes>
     </Router>
   )
