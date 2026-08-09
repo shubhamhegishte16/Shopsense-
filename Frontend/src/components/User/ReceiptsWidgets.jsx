@@ -1,5 +1,13 @@
-import { Upload, ChevronDown, MoreVertical } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Upload, ChevronDown, MoreVertical, Loader2, Check, AlertCircle, RefreshCw } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+
+const API_BASE = 'http://localhost:5000/api';
+
+function getAuthHeaders() {
+  const token = localStorage.getItem('shopsense_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 export function ReceiptsHeader() {
   return (
@@ -15,57 +23,145 @@ export function ReceiptsHeader() {
   );
 }
 
-export function UploadZone() {
+export function UploadZone({ onUploadSuccess }) {
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setUploadSuccess(false);
+    setErrorMsg(null);
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const res = await fetch(`${API_BASE}/receipts/upload`, {
+        method: 'POST',
+        headers: getAuthHeaders(),   // ← JWT token attached
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || data.message || `Upload failed (${res.status})`);
+      }
+
+      console.log('Receipt Processed:', data);
+      setUploadSuccess(true);
+      if (onUploadSuccess) onUploadSuccess(); // signal parent to refresh grid
+      setTimeout(() => setUploadSuccess(false), 3000);
+    } catch (error) {
+      console.error('Upload error:', error);
+      setErrorMsg(error.message);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   return (
-    <div style={{
-      border: '1px solid #E2E8F0',
-      borderRadius: 16,
-      background: '#FFFFFF',
-      padding: '24px 32px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: 32,
-      boxShadow: '0 2px 10px rgba(0,0,0,0.02)'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-        <div style={{
-          width: 64,
-          height: 64,
-          borderRadius: 16,
-          background: '#E8F5E9',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <ReceiptIcon size={28} color="#154539" />
-        </div>
-        <div>
-          <h3 style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', margin: '0 0 4px 0' }}>Drag & drop your receipt here</h3>
-          <p style={{ fontSize: 14, color: '#94A3B8', margin: '0 0 12px 0' }}>or click to upload</p>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <span style={fileTagStyle}>JPG</span>
-            <span style={fileTagStyle}>PNG</span>
-            <span style={fileTagStyle}>PDF</span>
-            <span style={{ fontSize: 12, color: '#94A3B8', marginLeft: 8 }}>Max size 10MB</span>
-          </div>
-        </div>
-      </div>
-      <button style={{
-        background: '#154539',
-        color: '#FFFFFF',
-        border: 'none',
-        borderRadius: 12,
-        padding: '12px 24px',
-        fontSize: 14,
-        fontWeight: 600,
+    <div style={{ marginBottom: 32 }}>
+      <div style={{
+        border: '1px solid #E2E8F0',
+        borderRadius: 16,
+        background: '#FFFFFF',
+        padding: '24px 32px',
         display: 'flex',
         alignItems: 'center',
-        gap: 8,
-        cursor: 'pointer'
+        justifyContent: 'space-between',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.02)'
       }}>
-        <Upload size={18} /> Upload Receipt
-      </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+          <div style={{
+            width: 64,
+            height: 64,
+            borderRadius: 16,
+            background: '#E8F5E9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <ReceiptIcon size={28} color="#154539" />
+          </div>
+          <div>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', margin: '0 0 4px 0' }}>Drag & drop your receipt here</h3>
+            <p style={{ fontSize: 14, color: '#94A3B8', margin: '0 0 12px 0' }}>or click to upload</p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <span style={fileTagStyle}>JPG</span>
+              <span style={fileTagStyle}>PNG</span>
+              <span style={fileTagStyle}>PDF</span>
+              <span style={{ fontSize: 12, color: '#94A3B8', marginLeft: 8 }}>Max size 10MB</span>
+            </div>
+          </div>
+        </div>
+
+        <input
+          type="file"
+          accept="image/*,application/pdf"
+          ref={fileInputRef}
+          onChange={handleUpload}
+          style={{ display: 'none' }}
+        />
+
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isUploading}
+          style={{
+            background: uploadSuccess ? '#10B981' : '#154539',
+            color: '#FFFFFF',
+            border: 'none',
+            borderRadius: 12,
+            padding: '12px 24px',
+            fontSize: 14,
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            cursor: isUploading ? 'not-allowed' : 'pointer',
+            opacity: isUploading ? 0.7 : 1,
+            transition: 'background 0.3s'
+          }}
+        >
+          {isUploading ? (
+            <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> Processing...</>
+          ) : uploadSuccess ? (
+            <><Check size={18} /> Processed!</>
+          ) : (
+            <><Upload size={18} /> Upload Receipt</>
+          )}
+        </button>
+      </div>
+
+      {/* Error banner — shows real API error message */}
+      {errorMsg && (
+        <div style={{
+          marginTop: 12,
+          background: '#FEF2F2',
+          border: '1px solid #FECACA',
+          borderRadius: 10,
+          padding: '12px 16px',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 10
+        }}>
+          <AlertCircle size={16} color="#DC2626" style={{ flexShrink: 0, marginTop: 2 }} />
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#DC2626', marginBottom: 2 }}>Upload Failed</div>
+            <div style={{ fontSize: 12, color: '#991B1B' }}>{errorMsg}</div>
+          </div>
+          <button
+            onClick={() => setErrorMsg(null)}
+            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#DC2626', fontSize: 16, lineHeight: 1 }}
+          >×</button>
+        </div>
+      )}
     </div>
   );
 }
@@ -141,68 +237,144 @@ export function CategoryFilters() {
   );
 }
 
-export function ReceiptGrid() {
-  const receipts = [
-    { store: 'D-Mart Ready', date: '29 May 2024 • 7:45 PM', amount: '₹1,245', category: 'Groceries', items: 18, color: '#10B981', initial: 'D' },
-    { store: 'Blinkit', date: '28 May 2024 • 6:30 PM', amount: '₹842', category: 'Groceries', items: 12, color: '#F59E0B', initial: 'B' },
-    { store: 'Apollo Pharmacy', date: '27 May 2024 • 4:15 PM', amount: '₹562', category: 'Pharmacy', items: 7, color: '#8B5CF6', initial: 'A' },
-    { store: 'Amazon Fresh', date: '26 May 2024 • 8:10 PM', amount: '₹1,320', category: 'Groceries', items: 24, color: '#334155', initial: 'a' },
-    { store: 'Reliance Smart', date: '25 May 2024 • 5:40 PM', amount: '₹2,156', category: 'Groceries', items: 31, color: '#EF4444', initial: 'R' },
-    { store: 'Zepto', date: '24 May 2024 • 9:20 PM', amount: '₹689', category: 'Groceries', items: 10, color: '#3B82F6', initial: 'Z' },
-    { store: 'Vishal Mega Mart', date: '23 May 2024 • 3:25 PM', amount: '₹1,089', category: 'Others', items: 15, color: '#EC4899', initial: 'V' },
-    { store: 'MedPlus', date: '22 May 2024 • 11:05 AM', amount: '₹378', category: 'Pharmacy', items: 6, color: '#EF4444', initial: '+' },
-  ];
+const CATEGORY_COLORS = {
+  Groceries: { bg: '#E8F5E9', text: '#154539' },
+  Pharmacy: { bg: '#F3E8FF', text: '#7E22CE' },
+  Electronics: { bg: '#EFF6FF', text: '#1D4ED8' },
+  Household: { bg: '#FEF3C7', text: '#92400E' },
+  'Personal Care': { bg: '#FDF2F8', text: '#9D174D' },
+  Clothing: { bg: '#FFF7ED', text: '#C2410C' },
+  Other: { bg: '#F1F5F9', text: '#475569' },
+};
+
+function storeInitial(name) {
+  return (name || '?').charAt(0).toUpperCase();
+}
+
+function storeColor(name) {
+  const colors = ['#10B981', '#F59E0B', '#8B5CF6', '#3B82F6', '#EF4444', '#EC4899', '#334155', '#F97316'];
+  let hash = 0;
+  for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return colors[Math.abs(hash) % colors.length];
+}
+
+function formatDate(dateStr) {
+  try {
+    return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch { return dateStr; }
+}
+
+export function ReceiptGrid({ refreshTrigger }) {
+  const [receipts, setReceipts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
+
+  const fetchReceipts = useCallback(async () => {
+    setLoading(true);
+    setFetchError(null);
+    try {
+      const res = await fetch(`${API_BASE}/receipts`, { headers: getAuthHeaders() });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to fetch receipts');
+      setReceipts(data.receipts || []);
+    } catch (err) {
+      setFetchError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchReceipts(); }, [fetchReceipts, refreshTrigger]);
+
+  if (loading) {
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
+        {[...Array(4)].map((_, i) => (
+          <div key={i} style={{ background: '#F8FAFC', borderRadius: 16, height: 220, animation: 'pulse 1.5s ease-in-out infinite' }} />
+        ))}
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div style={{ textAlign: 'center', padding: '48px 24px', background: '#FEF2F2', borderRadius: 16, border: '1px solid #FECACA' }}>
+        <AlertCircle size={32} color="#DC2626" style={{ marginBottom: 12 }} />
+        <div style={{ fontSize: 14, color: '#991B1B', marginBottom: 16 }}>{fetchError}</div>
+        <button onClick={fetchReceipts} style={{ background: '#154539', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 20px', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <RefreshCw size={14} /> Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (receipts.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', padding: '64px 24px', background: '#F8FAFC', borderRadius: 16, border: '2px dashed #E2E8F0' }}>
+        <ReceiptIcon size={40} color="#CBD5E1" />
+        <div style={{ fontSize: 16, fontWeight: 700, color: '#94A3B8', marginTop: 16, marginBottom: 8 }}>No receipts yet</div>
+        <div style={{ fontSize: 13, color: '#CBD5E1' }}>Upload your first receipt to get started</div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
-      {receipts.map((r, i) => (
-        <div key={i} style={{
-          background: '#FFFFFF',
-          border: '1px solid #E2E8F0',
-          borderRadius: 16,
-          padding: 16,
-          boxShadow: '0 2px 10px rgba(0,0,0,0.02)'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: `${r.color}15`, color: r.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14 }}>
-                {r.initial}
+      {receipts.map((r, i) => {
+        const color = storeColor(r.storeName);
+        const initial = storeInitial(r.storeName);
+        const primaryCategory = r.items?.[0]?.category || 'Other';
+        const catStyle = CATEGORY_COLORS[primaryCategory] || CATEGORY_COLORS['Other'];
+        return (
+          <div key={r._id || i} style={{
+            background: '#FFFFFF',
+            border: '1px solid #E2E8F0',
+            borderRadius: 16,
+            padding: 16,
+            boxShadow: '0 2px 10px rgba(0,0,0,0.02)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: `${color}20`, color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14 }}>
+                  {initial}
+                </div>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#0F172A' }}>{r.storeName || 'Unknown Store'}</div>
+                  <div style={{ fontSize: 11, color: '#94A3B8' }}>{formatDate(r.date)}</div>
+                </div>
               </div>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#0F172A' }}>{r.store}</div>
-                <div style={{ fontSize: 11, color: '#94A3B8' }}>{r.date}</div>
-              </div>
+              <MoreVertical size={16} color="#94A3B8" style={{ cursor: 'pointer' }} />
             </div>
-            <MoreVertical size={16} color="#94A3B8" style={{ cursor: 'pointer' }} />
-          </div>
-          
-          <div style={{ fontSize: 20, fontWeight: 800, color: '#0F172A', textAlign: 'right', marginBottom: 16 }}>
-            {r.amount}
-          </div>
 
-          <div style={{ 
-            height: 120, 
-            background: '#F8FAFC', 
-            borderRadius: 8, 
-            marginBottom: 16,
-            backgroundImage: `url("https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80&w=300&h=200")`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            border: '1px solid #F1F5F9'
-          }} />
+            <div style={{ fontSize: 20, fontWeight: 800, color: '#0F172A', textAlign: 'right', marginBottom: 16 }}>
+              ₹{(r.totalAmount || 0).toLocaleString('en-IN')}
+            </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ 
-              background: r.category === 'Groceries' ? '#E8F5E9' : r.category === 'Pharmacy' ? '#F3E8FF' : '#F1F5F9',
-              color: r.category === 'Groceries' ? '#154539' : r.category === 'Pharmacy' ? '#7E22CE' : '#475569',
-              padding: '4px 8px', borderRadius: 4, fontSize: 11, fontWeight: 700 
+            <div style={{
+              height: 120,
+              background: '#F8FAFC',
+              borderRadius: 8,
+              marginBottom: 16,
+              backgroundImage: r.imageUrl ? `url("${r.imageUrl}")` : 'none',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              border: '1px solid #F1F5F9',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}>
-              {r.category}
-            </span>
-            <span style={{ fontSize: 11, color: '#94A3B8', fontWeight: 500 }}>{r.items} items</span>
+              {!r.imageUrl && <ReceiptIcon size={28} color="#CBD5E1" />}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ background: catStyle.bg, color: catStyle.text, padding: '4px 8px', borderRadius: 4, fontSize: 11, fontWeight: 700 }}>
+                {primaryCategory}
+              </span>
+              <span style={{ fontSize: 11, color: '#94A3B8', fontWeight: 500 }}>{(r.items || []).length} items</span>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

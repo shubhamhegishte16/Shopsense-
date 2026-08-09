@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Sidebar from '../../components/User/Sidebar';
 import TopNav from '../../components/User/TopNav';
 import { 
@@ -11,6 +12,9 @@ import {
 } from '../../components/User/ReceiptsWidgets';
 
 export default function Receipts() {
+  // Increment this to trigger ReceiptGrid to re-fetch receipts from the backend
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
   return (
     <div style={{
       display: 'flex',
@@ -30,9 +34,9 @@ export default function Receipts() {
           {/* Left Column (Main) */}
           <div style={{ flex: 1 }}>
             <ReceiptsHeader />
-            <UploadZone />
+            <UploadZone onUploadSuccess={() => setRefreshTrigger(t => t + 1)} />
             <CategoryFilters />
-            <ReceiptGrid />
+            <ReceiptGrid refreshTrigger={refreshTrigger} />
           </div>
 
           {/* Right Column (Sidebar for Receipts) */}
