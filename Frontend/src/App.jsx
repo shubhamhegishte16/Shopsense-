@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { ThemeProvider } from './hooks/useTheme'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
@@ -14,22 +15,24 @@ import Settings from './pages/user/Settings'
 
 export default function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/receipts" element={<Receipts />} />
-        <Route path="/optimizer" element={<Optimizer />} />
-        <Route path="/compare" element={<Compare />} />
-        <Route path="/pantry" element={<Pantry />} />
-        <Route path="/insights" element={<Insights />} />
-        <Route path="/chat" element={<ChatAI />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/settings/:section" element={<Settings />} />
-      </Routes>
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/receipts" element={<Receipts />} />
+          <Route path="/optimizer" element={<Optimizer />} />
+          <Route path="/compare" element={<Compare />} />
+          <Route path="/pantry" element={<Pantry />} />
+          <Route path="/insights" element={<Insights />} />
+          <Route path="/chat" element={<ChatAI />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/settings/:section" element={<Settings />} />
+        </Routes>
+      </Router>
+    </ThemeProvider>
   )
 }

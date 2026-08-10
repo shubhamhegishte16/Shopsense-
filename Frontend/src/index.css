@@ -6,14 +6,55 @@
   --clr-primary: #154539;
   --clr-secondary: #2F5D50;
   --clr-mid: #6B7280;
-  --clr-text: #10B981; /* Lighter shade of green as requested */
+  --clr-text: #10B981;
   --clr-muted: #9CA3AF;
   --clr-light-bg: #F4F7F6;
   --clr-light-alt: #EEEEEC;
   --clr-border: rgba(21, 69, 57, 0.1);
   --clr-border-30: rgba(21, 69, 57, 0.2);
   --nav-height: 70px;
+
+  /* User panel tokens */
+  --up-bg:       #FAFCFC;
+  --up-surface:  #FFFFFF;
+  --up-border:   #E2E8F0;
+  --up-border-2: #F1F5F9;
+  --up-title:    #0F172A;
+  --up-body:     #334155;
+  --up-muted:    #64748B;
+  --up-subtle:   #94A3B8;
+  --up-input-bg: #FAFCFC;
+  --up-hover:    #F8FAFC;
+  --up-tag-bg:   #F1F5F9;
+  --up-shadow:   rgba(0,0,0,0.04);
 }
+
+/* ── Dark mode overrides ────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --clr-bg:        #0D1117;
+  --clr-light-bg:  #161B22;
+  --clr-light-alt: #1C2330;
+
+  /* User panel tokens */
+  --up-bg:       #0D1117;
+  --up-surface:  #161B22;
+  --up-border:   #30363D;
+  --up-border-2: #21262D;
+  --up-title:    #E6EDF3;
+  --up-body:     #C9D1D9;
+  --up-muted:    #8B949E;
+  --up-subtle:   #6E7681;
+  --up-input-bg: #1C2330;
+  --up-hover:    #1C2330;
+  --up-tag-bg:   #21262D;
+  --up-shadow:   rgba(0,0,0,0.3);
+}
+
+/* Smooth theme transitions */
+*, *::before, *::after {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -303,3 +344,111 @@ body {
   }
 }
 
+/* ── Dark mode: user panel element overrides ─────────────────────────────────
+   These rules use the --up-* CSS variables that switch value when
+   [data-theme="dark"] is set on <html>. They target the structural selectors
+   that would otherwise rely on inline-style hardcoded hex values.
+   We override the most impactful surfaces so the dark theme looks polished.
+─────────────────────────────────────────────────────────────────────────────── */
+
+/* Main page backgrounds */
+[data-theme="dark"] main,
+[data-theme="dark"] .user-main-bg {
+  background: var(--up-bg) !important;
+}
+
+/* Sticky nav strips */
+[data-theme="dark"] div[style*="position: sticky"],
+[data-theme="dark"] div[style*="position:sticky"] {
+  background: var(--up-bg) !important;
+  border-bottom-color: var(--up-border-2) !important;
+}
+
+/* White card / surface */
+[data-theme="dark"] div[style*="background: #FFFFFF"],
+[data-theme="dark"] div[style*="background: rgb(255, 255, 255)"],
+[data-theme="dark"] div[style*="background:#FFFFFF"],
+[data-theme="dark"] div[style*="background: #FFF"],
+[data-theme="dark"] div[style*="background:#FFF"] {
+  background: var(--up-surface) !important;
+  border-color: var(--up-border-2) !important;
+}
+
+/* Off-white / subtle backgrounds */
+[data-theme="dark"] div[style*="background: #F8FAFC"],
+[data-theme="dark"] div[style*="background:#F8FAFC"],
+[data-theme="dark"] div[style*="background: #FAFCFC"],
+[data-theme="dark"] div[style*="background:#FAFCFC"],
+[data-theme="dark"] div[style*="background: #F0FDF4"],
+[data-theme="dark"] div[style*="background: #F1F5F9"] {
+  background: var(--up-input-bg) !important;
+  border-color: var(--up-border) !important;
+}
+
+/* Dark headings */
+[data-theme="dark"] h1[style*="#0F172A"],
+[data-theme="dark"] h2[style*="#0F172A"],
+[data-theme="dark"] h3[style*="#0F172A"],
+[data-theme="dark"] h4[style*="#0F172A"],
+[data-theme="dark"] div[style*="color: #0F172A"],
+[data-theme="dark"] span[style*="color: #0F172A"] {
+  color: var(--up-title) !important;
+}
+
+/* Body text */
+[data-theme="dark"] div[style*="color: #334155"],
+[data-theme="dark"] span[style*="color: #334155"],
+[data-theme="dark"] p[style*="color: #334155"] {
+  color: var(--up-body) !important;
+}
+
+/* Muted text */
+[data-theme="dark"] div[style*="color: #64748B"],
+[data-theme="dark"] span[style*="color: #64748B"],
+[data-theme="dark"] p[style*="color: #64748B"] {
+  color: var(--up-muted) !important;
+}
+
+[data-theme="dark"] div[style*="color: #94A3B8"],
+[data-theme="dark"] span[style*="color: #94A3B8"],
+[data-theme="dark"] p[style*="color: #94A3B8"] {
+  color: var(--up-subtle) !important;
+}
+
+/* Borders */
+[data-theme="dark"] div[style*="border: 1px solid #E2E8F0"],
+[data-theme="dark"] div[style*="border: 1px solid #F1F5F9"],
+[data-theme="dark"] div[style*="border:1px solid #E2E8F0"] {
+  border-color: var(--up-border) !important;
+}
+
+/* Inputs */
+[data-theme="dark"] input[style] {
+  background: var(--up-input-bg) !important;
+  color: var(--up-title) !important;
+  border-color: var(--up-border) !important;
+}
+[data-theme="dark"] input::placeholder { color: var(--up-subtle) !important; }
+
+/* Sidebar text override */
+[data-theme="dark"] nav,
+[data-theme="dark"] aside {
+  background: var(--up-surface) !important;
+  border-color: var(--up-border) !important;
+}
+
+/* Button hover rows */
+[data-theme="dark"] button[style*="background: transparent"],
+[data-theme="dark"] button[style*="background:transparent"] {
+  color: var(--up-body) !important;
+}
+[data-theme="dark"] button[style*="background: #F8FAFC"],
+[data-theme="dark"] button[style*="background: #FAFCFC"],
+[data-theme="dark"] button[style*="background: #F0FDF4"],
+[data-theme="dark"] button[style*="background: #FFF"],
+[data-theme="dark"] button[style*="background:#FFF"],
+[data-theme="dark"] button[style*="background: #FFFFFF"] {
+  background: var(--up-surface) !important;
+  border-color: var(--up-border) !important;
+  color: var(--up-body) !important;
+}
