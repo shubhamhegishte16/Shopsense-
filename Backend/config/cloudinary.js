@@ -28,14 +28,15 @@ const upload = multer({
  * Uploads a file buffer to Cloudinary.
  * @param {Buffer} buffer - The file buffer
  * @param {string} mimetype - The MIME type of the file
+ * @param {string} folder - The Cloudinary folder to upload to
  * @returns {Promise<string>} - The secure Cloudinary URL
  */
-async function uploadToCloudinary(buffer, mimetype) {
+async function uploadToCloudinary(buffer, mimetype, folder = 'shopsense_receipts') {
   return new Promise((resolve, reject) => {
     const resourceType = mimetype === 'application/pdf' ? 'raw' : 'image';
     const uploadStream = cloudinary.uploader.upload_stream(
       {
-        folder: 'shopsense_receipts',
+        folder,
         resource_type: resourceType,
       },
       (error, result) => {

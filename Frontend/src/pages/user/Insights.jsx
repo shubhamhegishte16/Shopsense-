@@ -44,14 +44,14 @@ export default function Insights() {
 
       {/* Main Content */}
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', height: '100vh' }}>
-        <TopNav />
-
-        <div style={{ padding: '32px 40px 48px' }}>
-          {/* Page Header + Action Bar (inline, space-between) */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 28 }}>
+        <TopNav titleNode={
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
             <InsightsHeader />
             <InsightsActionBar />
           </div>
+        } />
+
+        <div style={{ padding: '0 40px 48px' }}>
 
           {loading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '100px 0' }}>

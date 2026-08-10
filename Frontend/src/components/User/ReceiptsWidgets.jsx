@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Upload, ChevronDown, MoreVertical, Loader2, Check, AlertCircle, RefreshCw } from 'lucide-react';
+import { Upload, ChevronDown, MoreVertical, Loader2, Check, AlertCircle, RefreshCw, Trash2 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 const API_BASE = 'http://localhost:5000/api';
@@ -91,8 +91,8 @@ export function UploadZone({ onUploadSuccess }) {
             <ReceiptIcon size={28} color="#154539" />
           </div>
           <div>
-            <h3 style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', margin: '0 0 4px 0' }}>Drag & drop your receipt here</h3>
-            <p style={{ fontSize: 14, color: '#94A3B8', margin: '0 0 12px 0' }}>or click to upload</p>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', margin: '0 0 4px 0' }}>Upload your receipt here</h3>
+           
             <div style={{ display: 'flex', gap: 8 }}>
               <span style={fileTagStyle}>JPG</span>
               <span style={fileTagStyle}>PNG</span>
@@ -175,14 +175,20 @@ const fileTagStyle = {
   borderRadius: 4
 };
 
-export function CategoryFilters() {
+export function CategoryFilters({ receipts = [] }) {
+  const categoryCounts = receipts.reduce((acc, r) => {
+    const primaryCategory = r.items?.[0]?.category || 'Other';
+    acc[primaryCategory] = (acc[primaryCategory] || 0) + 1;
+    return acc;
+  }, {});
+
   const filters = [
-    { name: 'All Receipts', count: 25, active: true },
-    { name: 'Groceries', count: 15 },
-    { name: 'Pharmacy', count: 4 },
-    { name: 'Electronics', count: 3 },
-    { name: 'Fashion', count: 3 },
-    { name: 'Others', count: 0 }
+    { name: 'All Receipts', count: receipts.length, active: true },
+    { name: 'Groceries', count: categoryCounts['Groceries'] || 0 },
+    { name: 'Pharmacy', count: categoryCounts['Pharmacy'] || 0 },
+    { name: 'Electronics', count: categoryCounts['Electronics'] || 0 },
+    { name: 'Fashion', count: categoryCounts['Clothing'] || 0 },
+    { name: 'Others', count: categoryCounts['Other'] || 0 }
   ];
 
   return (
@@ -213,25 +219,6 @@ export function CategoryFilters() {
             }}>{f.count}</span>
           </button>
         ))}
-      </div>
-      
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#64748B', fontWeight: 500 }}>
-        Sort by
-        <button style={{
-          background: '#FFFFFF',
-          border: '1px solid #E2E8F0',
-          borderRadius: 12,
-          padding: '8px 16px',
-          fontSize: 13,
-          fontWeight: 600,
-          color: '#334155',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          cursor: 'pointer'
-        }}>
-          Newest <ChevronDown size={14} />
-        </button>
       </div>
     </div>
   );
@@ -264,7 +251,7 @@ function formatDate(dateStr) {
   } catch { return dateStr; }
 }
 
-export function ReceiptGrid({ refreshTrigger }) {
+export function useReceipts(refreshTrigger) {
   const [receipts, setReceipts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null);
@@ -285,6 +272,29 @@ export function ReceiptGrid({ refreshTrigger }) {
   }, []);
 
   useEffect(() => { fetchReceipts(); }, [fetchReceipts, refreshTrigger]);
+
+  return { receipts, loading, fetchError, fetchReceipts };
+}
+
+export function ReceiptGrid({ receipts, loading, fetchError, fetchReceipts }) {
+  const [deletingId, setDeletingId] = useState(null);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this receipt and all its extracted items?")) return;
+    setDeletingId(id);
+    try {
+      const res = await fetch(`${API_BASE}/receipts/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      if (!res.ok) throw new Error('Failed to delete receipt');
+      fetchReceipts();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -343,7 +353,11 @@ export function ReceiptGrid({ refreshTrigger }) {
                   <div style={{ fontSize: 11, color: '#94A3B8' }}>{formatDate(r.date)}</div>
                 </div>
               </div>
-              <MoreVertical size={16} color="#94A3B8" style={{ cursor: 'pointer' }} />
+              {deletingId === r._id ? (
+                <Loader2 size={16} color="#94A3B8" style={{ animation: 'spin 1s linear infinite' }} />
+              ) : (
+                <Trash2 size={16} color="#EF4444" style={{ cursor: 'pointer' }} onClick={() => handleDelete(r._id)} title="Delete Receipt" />
+              )}
             </div>
 
             <div style={{ fontSize: 20, fontWeight: 800, color: '#0F172A', textAlign: 'right', marginBottom: 16 }}>
@@ -379,18 +393,22 @@ export function ReceiptGrid({ refreshTrigger }) {
   );
 }
 
-export function ReceiptSummaryPanel() {
+export function ReceiptSummaryPanel({ receipts = [] }) {
+  const totalReceipts = receipts.length;
+  const totalSpent = receipts.reduce((sum, r) => sum + (r.totalAmount || 0), 0);
+  const avgReceipt = totalReceipts > 0 ? Math.round(totalSpent / totalReceipts) : 0;
+
   return (
     <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 16, padding: 24, marginBottom: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0F172A', margin: 0 }}>Receipt Summary</h3>
-        <span style={{ fontSize: 12, color: '#64748B', background: '#F8FAFC', padding: '4px 8px', borderRadius: 6 }}>This Month</span>
+        <span style={{ fontSize: 12, color: '#64748B', background: '#F8FAFC', padding: '4px 8px', borderRadius: 6 }}>All Time</span>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-        <SummaryRow icon={<ReceiptIcon size={16} color="#10B981" />} iconBg="#D1FAE5" title="Total Receipts" value="25" trend="+12%" up={true} />
-        <SummaryRow icon={<ShoppingBagIcon size={16} color="#8B5CF6" />} iconBg="#F3E8FF" title="Total Spent" value="₹7,842" trend="-8%" up={true} />
-        <SummaryRow icon={<ShieldIcon size={16} color="#F59E0B" />} iconBg="#FEF3C7" title="Average per Receipt" value="₹314" trend="-4%" up={false} />
+        <SummaryRow icon={<ReceiptIcon size={16} color="#10B981" />} iconBg="#D1FAE5" title="Total Receipts" value={totalReceipts} trend="+0%" up={true} />
+        <SummaryRow icon={<ShoppingBagIcon size={16} color="#8B5CF6" />} iconBg="#F3E8FF" title="Total Spent" value={`₹${totalSpent.toLocaleString('en-IN')}`} trend="0%" up={true} />
+        <SummaryRow icon={<ShieldIcon size={16} color="#F59E0B" />} iconBg="#FEF3C7" title="Average per Receipt" value={`₹${avgReceipt.toLocaleString('en-IN')}`} trend="0%" up={true} />
       </div>
     </div>
   );
@@ -418,13 +436,38 @@ function SummaryRow({ icon, iconBg, title, value, trend, up }) {
   );
 }
 
-export function TopCategoriesPanel() {
-  const data = [
-    { name: 'Groceries', value: 5320, color: '#10B981', percent: '68%' },
-    { name: 'Pharmacy', value: 1098, color: '#F59E0B', percent: '14%' },
-    { name: 'Electronics', value: 784, color: '#3B82F6', percent: '10%' },
-    { name: 'Others', value: 640, color: '#8B5CF6', percent: '8%' },
-  ];
+export function TopCategoriesPanel({ receipts = [] }) {
+  if (receipts.length === 0) {
+    return (
+      <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 16, padding: 24, marginBottom: 24 }}>
+        <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0F172A', margin: '0 0 24px 0' }}>Top Spending Categories</h3>
+        <div style={{ textAlign: 'center', padding: '24px 0', color: '#94A3B8', fontSize: 14 }}>No data yet</div>
+      </div>
+    );
+  }
+
+  const categoryTotals = receipts.reduce((acc, r) => {
+    const primaryCategory = r.items?.[0]?.category || 'Other';
+    acc[primaryCategory] = (acc[primaryCategory] || 0) + (r.totalAmount || 0);
+    return acc;
+  }, {});
+
+  const totalSpent = Object.values(categoryTotals).reduce((sum, val) => sum + val, 0);
+
+  const PIE_COLORS = {
+    Groceries: '#10B981', Pharmacy: '#F59E0B', Electronics: '#3B82F6', 
+    Household: '#92400E', 'Personal Care': '#9D174D', Clothing: '#C2410C', Other: '#8B5CF6'
+  };
+
+  const data = Object.entries(categoryTotals)
+    .map(([name, value]) => ({
+      name,
+      value,
+      color: PIE_COLORS[name] || PIE_COLORS['Other'],
+      percent: totalSpent > 0 ? `${Math.round((value / totalSpent) * 100)}%` : '0%',
+    }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 4);
 
   return (
     <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 16, padding: 24, marginBottom: 24 }}>
@@ -448,7 +491,7 @@ export function TopCategoriesPanel() {
           </PieChart>
         </ResponsiveContainer>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: '#0F172A' }}>₹7,842</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: '#0F172A' }}>₹{totalSpent.toLocaleString('en-IN')}</div>
           <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 600 }}>TOTAL</div>
         </div>
       </div>
@@ -462,7 +505,7 @@ export function TopCategoriesPanel() {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <span style={{ color: '#94A3B8', width: 28, textAlign: 'right' }}>{d.percent}</span>
-              <span style={{ fontWeight: 700, color: '#0F172A', width: 48, textAlign: 'right' }}>₹{d.value.toLocaleString()}</span>
+              <span style={{ fontWeight: 700, color: '#0F172A', width: 48, textAlign: 'right' }}>₹{d.value.toLocaleString('en-IN')}</span>
             </div>
           </div>
         ))}
@@ -471,7 +514,7 @@ export function TopCategoriesPanel() {
   );
 }
 
-export function AIInsightPanel() {
+export function AIInsightPanel({ receipts = [] }) {
   return (
     <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 16, padding: 24 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
@@ -482,7 +525,7 @@ export function AIInsightPanel() {
       </div>
       
       <p style={{ fontSize: 13, color: '#334155', lineHeight: 1.5, margin: '0 0 16px 0' }}>
-        You spent 18% more on groceries this month.
+        {receipts.length === 0 ? "Upload receipts to get AI insights." : "You spent most of your money on Groceries this month. (Mock Insight)"}
       </p>
 
       <button style={{

@@ -178,3 +178,128 @@ body {
   text-transform: uppercase;
   color: var(--clr-text);
 }
+
+/* ─── Responsive Utilities ────────────────────────────────────────────────── */
+
+/* Mobile bottom nav safe area */
+.mobile-pb-nav { padding-bottom: 72px; }
+
+/* Hide/show helpers */
+@media (max-width: 767px) {
+  .hide-mobile { display: none !important; }
+  .show-mobile { display: flex !important; }
+  .section-container { padding: 0 20px; }
+}
+
+@media (min-width: 768px) {
+  .show-mobile { display: none !important; }
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  .hide-tablet { display: none !important; }
+}
+
+/* Landing page features grid */
+@media (max-width: 767px) {
+  .features-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .landing-section-pad {
+    padding: 72px 0 !important;
+  }
+  .chatbot-card-pad {
+    padding: 40px 24px !important;
+  }
+  .faq-item-pad {
+    padding: 16px 20px !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Insights stat cards */
+@media (max-width: 767px) {
+  .stats-grid-5 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .stats-grid-5 > *:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  .stats-grid-5 {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+/* Mobile bottom nav bar */
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 64px;
+  background: #FFFFFF;
+  border-top: 1px solid #F1F5F9;
+  z-index: 100;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 4px;
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+}
+
+@media (max-width: 767px) {
+  .mobile-bottom-nav { display: flex; }
+}
+
+/* Scrollable horizontal tab list on mobile */
+@media (max-width: 767px) {
+  .tab-list-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tab-list-scroll::-webkit-scrollbar { display: none; }
+}
+
+/* Hamburger menu for landing nav */
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--clr-primary);
+}
+
+@media (max-width: 767px) {
+  .hamburger-btn { display: flex; align-items: center; justify-content: center; }
+  .nav-links-desktop { display: none !important; }
+  .nav-ctas { gap: 8px !important; }
+  .nav-ctas .btn-outline { display: none; }
+}
+
+/* Login / Signup left panel */
+@media (max-width: 767px) {
+  .auth-left-panel { display: none !important; }
+  .auth-right-panel { flex: 1 !important; min-height: 100vh; }
+}
+
+/* Dashboard stats — 2 col on mobile */
+@media (max-width: 767px) {
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* User panel main layout spacing */
+@media (max-width: 767px) {
+  .user-panel-content {
+    padding: 20px 16px 80px !important;
+  }
+}
+

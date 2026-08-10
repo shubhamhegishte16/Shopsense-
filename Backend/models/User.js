@@ -37,6 +37,36 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    phone: {
+      type: String,
+      trim: true,
+    },
+    location: {
+      type: String,
+      trim: true,
+    },
+    dateOfBirth: {
+      type: Date,
+    },
+    gender: {
+      type: String,
+      enum: ["Male", "Female", "Prefer not to say", ""],
+      default: "",
+    },
+    bio: {
+      type: String,
+      maxlength: [150, "Bio cannot exceed 150 characters"],
+      trim: true,
+    },
+    preferences: {
+      smartRecommendations: { type: Boolean, default: true },
+      priceDropAlerts:      { type: Boolean, default: true },
+      darkMode:             { type: Boolean, default: false },
+      weeklySummary:        { type: Boolean, default: true },
+      currency:             { type: String, default: 'INR (₹)' },
+      language:             { type: String, default: 'English' },
+      monthlyBudget:        { type: Number, default: 8000 },
+    },
     lastLogin: {
       type: Date,
       default: null,

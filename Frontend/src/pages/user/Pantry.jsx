@@ -10,39 +10,33 @@ function getAuthHeaders() {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-function PantryTopNav({ onRefresh }) {
+function PantryTopNav({ onRefresh, titleNode }) {
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '24px 40px', background: '#FAFCFC',
+      display: 'flex', flexDirection: 'column',
+      padding: '32px 40px 24px', background: '#FAFCFC',
       position: 'sticky', top: 0, zIndex: 10,
-      borderBottom: '1px solid #F1F5F9'
+      borderBottom: '1px solid #F1F5F9',
+      width: '100%', boxSizing: 'border-box'
     }}>
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: '#F0FDF4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <HomeIcon size={18} color="#154539" />
-          </div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.5px' }}>My Pantry</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: titleNode ? 24 : 0, width: '100%' }}>
+        <div>{titleNode}</div>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+          <button style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid #E2E8F0', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative' }}>
+            <Bell size={20} color="#334155" />
+            <div style={{ position: 'absolute', top: -2, right: -2, background: '#154539', color: '#FFF', fontSize: 9, fontWeight: 800, width: 16, height: 16, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #FAFCFC' }}>3</div>
+          </button>
+          <button onClick={onRefresh} style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: '#154539', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <RotateCw size={18} color="#FFFFFF" />
+          </button>
         </div>
-        <p style={{ fontSize: 13, color: '#94A3B8', margin: 0, paddingLeft: 46 }}>Track items, get expiry alerts and manage groceries smarter.</p>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1, justifyContent: 'center', maxWidth: 450, margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 999, padding: '10px 20px', width: '100%', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 999, padding: '10px 20px', width: '100%', maxWidth: 450, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
           <Search size={16} color="#94A3B8" />
           <input type="text" placeholder="Search for items in your pantry..." style={{ border: 'none', outline: 'none', background: 'transparent', marginLeft: 10, width: '100%', fontSize: 14, color: '#0F172A', fontFamily: "'Inter', sans-serif" }} />
         </div>
-      </div>
-
-      <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-        <button style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid #E2E8F0', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative' }}>
-          <Bell size={20} color="#334155" />
-          <div style={{ position: 'absolute', top: -2, right: -2, background: '#154539', color: '#FFF', fontSize: 9, fontWeight: 800, width: 16, height: 16, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #FAFCFC' }}>3</div>
-        </button>
-        <button onClick={onRefresh} style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: '#154539', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-          <RotateCw size={18} color="#FFFFFF" />
-        </button>
       </div>
     </div>
   );
@@ -82,7 +76,17 @@ export default function Pantry() {
       <Sidebar />
 
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', height: '100vh' }}>
-        <PantryTopNav onRefresh={fetchPantryItems} />
+        <PantryTopNav onRefresh={fetchPantryItems} titleNode={
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: '#F0FDF4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <HomeIcon size={18} color="#154539" />
+              </div>
+              <h1 style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.5px' }}>My Pantry</h1>
+            </div>
+            <p style={{ fontSize: 13, color: '#94A3B8', margin: 0, paddingLeft: 46 }}>Track items, get expiry alerts and manage groceries smarter.</p>
+          </div>
+        } />
 
         <div style={{ padding: '32px 40px', display: 'flex', gap: 32 }}>
           {/* Main Content */}

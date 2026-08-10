@@ -21,4 +21,7 @@ router.post('/upload', handleUpload, protect, receiptController.uploadReceipt);
 // GET /api/receipts — auth required
 router.get('/', protect, receiptController.getReceipts);
 
+// DELETE /api/receipts/:id — auth required
+router.delete('/:id', protect, receiptController.deleteReceipt);
+
 module.exports = router;

@@ -591,17 +591,17 @@ export default function Settings() {
       <Sidebar />
 
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', height: '100vh' }}>
-        <TopNav />
-
-        <div style={{ padding: '32px 40px 48px' }}>
-          {/* Header */}
-          <div style={{ marginBottom: 28 }}>
+        <TopNav titleNode={
+          <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
               <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.5px' }}>Settings</h1>
               <SettingsIcon size={20} color="#64748B" />
             </div>
             <p style={{ fontSize: 14, color: '#64748B', margin: 0 }}>Manage your preferences and app configurations.</p>
           </div>
+        } />
+
+        <div style={{ padding: '0 40px 48px' }}>
 
           <div style={{ display: 'flex', gap: 24 }}>
             {/* Settings Sub-Nav */}

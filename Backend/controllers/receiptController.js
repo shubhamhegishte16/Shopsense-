@@ -105,3 +105,36 @@ exports.getReceipts = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch receipts' });
   }
 };
+
+exports.deleteReceipt = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const receiptId = req.params.id;
+
+    // Verify receipt belongs to user
+    const receipt = await Receipt.findOne({ _id: receiptId, userId });
+    if (!receipt) {
+      return res.status(404).json({ error: 'Receipt not found' });
+    }
+
+    // Find associated pantry items
+    const pantryItems = await PantryItem.find({ addedFromReceiptId: receiptId, userId });
+    const productIds = pantryItems.map(item => item.productId).filter(id => id);
+
+    // Delete associated pantry items
+    await PantryItem.deleteMany({ addedFromReceiptId: receiptId, userId });
+
+    // Delete associated products as requested
+    if (productIds.length > 0) {
+      await Product.deleteMany({ _id: { $in: productIds } });
+    }
+
+    // Delete the receipt
+    await Receipt.deleteOne({ _id: receiptId });
+
+    res.json({ message: 'Receipt and associated items deleted successfully' });
+  } catch (error) {
+    console.error("Delete Receipt Error:", error.message);
+    res.status(500).json({ error: 'Failed to delete receipt' });
+  }
+};
