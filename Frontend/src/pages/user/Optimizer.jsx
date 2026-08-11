@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import Sidebar from '../../components/User/Sidebar';
 import TopNav from '../../components/User/TopNav';
 import {
@@ -10,6 +12,28 @@ import {
 } from '../../components/User/OptimizerWidgets';
 
 export default function Optimizer() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOptimizerData = async () => {
+      try {
+        const token = localStorage.getItem('shopsense_token');
+        const res = await axios.get('http://localhost:5000/api/optimizer', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.data.success) {
+          setData(res.data.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch optimizer data', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOptimizerData();
+  }, []);
+
   return (
     <div style={{
       display: 'flex',
@@ -33,23 +57,50 @@ export default function Optimizer() {
           </div>
         } />
 
-        <div style={{ padding: '0 40px 40px', display: 'flex', gap: 32 }}>
-
-          {/* Left: Main Content */}
-          <div style={{ flex: 1 }}>
-            <OptimizerHero />
-            <InsightCards />
-            <BottomSection />
+        {loading ? (
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flex: 1,
+            gap: 16
+          }}>
+            <div style={{
+              width: 50,
+              height: 50,
+              border: '4px solid #E2E8F0',
+              borderTop: '4px solid #10B981',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }} />
+            <p style={{ color: '#64748B', fontSize: 14, fontWeight: 500 }}>Analyzing shopping habits & optimizing budget...</p>
+            <style>{`
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}</style>
           </div>
+        ) : (
+          <div style={{ padding: '0 40px 40px', display: 'flex', gap: 32 }}>
 
-          {/* Right: Stats Panel */}
-          <div style={{ width: 300, flexShrink: 0, paddingTop: 76 }}>
-            <SavingsBreakdownPanel />
-            <StoreOptimizerPanel />
-            <BudgetPlannerPanel />
+            {/* Left: Main Content */}
+            <div style={{ flex: 1 }}>
+              <OptimizerHero data={data} />
+              <InsightCards cards={data?.insightCards} />
+              <BottomSection recommendations={data?.recommendations} reorders={data?.reorders} />
+            </div>
+
+            {/* Right: Stats Panel */}
+            <div style={{ width: 300, flexShrink: 0, paddingTop: 76 }}>
+              <SavingsBreakdownPanel categoryData={data?.categoryData} totalSavings={data?.totalSavings} />
+              <StoreOptimizerPanel stores={data?.stores} />
+              <BudgetPlannerPanel budgetData={data?.budget} />
+            </div>
+
           </div>
-
-        </div>
+        )}
       </main>
     </div>
   );

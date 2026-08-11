@@ -2,7 +2,12 @@ import { ArrowRight, ArrowUp, ArrowDown, ShoppingCart, RefreshCw } from 'lucide-
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 // ─── Hero Savings Card ──────────────────────────────────────────────────────────
-export function OptimizerHero() {
+export function OptimizerHero({ data }) {
+  const totalSavings = data?.totalSavings ?? 1284;
+  const score = data?.shoppingScore ?? 94;
+  const scoreDiff = data?.scoreDiff ?? '8% vs last month';
+  const budgetUsedPct = data?.budget?.usedPct ?? 78;
+
   return (
     <div style={{
       background: 'linear-gradient(110deg, #154539 0%, #0F3028 100%)',
@@ -23,7 +28,7 @@ export function OptimizerHero() {
       {/* Left: Savings Info */}
       <div style={{ flex: 1 }}>
         <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', marginBottom: 8 }}>AI found potential savings of</p>
-        <div style={{ fontSize: 52, fontWeight: 900, color: '#FFFFFF', letterSpacing: '-2px', marginBottom: 8 }}>₹1,284</div>
+        <div style={{ fontSize: 52, fontWeight: 900, color: '#FFFFFF', letterSpacing: '-2px', marginBottom: 8 }}>₹{totalSavings.toLocaleString()}</div>
         <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', marginBottom: 32 }}>this month by optimizing your shopping.</p>
         <button style={{
           background: 'rgba(255,255,255,0.12)',
@@ -54,17 +59,19 @@ export function OptimizerHero() {
               <svg width="72" height="72" viewBox="0 0 72 72">
                 <circle cx="36" cy="36" r="30" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="6" />
                 <circle cx="36" cy="36" r="30" fill="none" stroke="#10B981" strokeWidth="6"
-                  strokeDasharray={`${2 * Math.PI * 30 * 0.94} ${2 * Math.PI * 30 * 0.06}`}
+                  strokeDasharray={`${2 * Math.PI * 30 * (score / 100)} ${2 * Math.PI * 30 * (1 - score / 100)}`}
                   strokeLinecap="round"
                   transform="rotate(-90 36 36)" />
               </svg>
               <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ fontSize: 16, fontWeight: 800, color: '#FFFFFF' }}>94%</span>
-                <span style={{ fontSize: 8, color: '#10B981', fontWeight: 700 }}>Excellent</span>
+                <span style={{ fontSize: 16, fontWeight: 800, color: '#FFFFFF' }}>{score}%</span>
+                <span style={{ fontSize: 8, color: '#10B981', fontWeight: 700 }}>
+                  {score >= 90 ? 'Excellent' : score >= 75 ? 'Good' : 'Fair'}
+                </span>
               </div>
             </div>
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <ArrowUp size={12} color="#10B981" /> 8% vs last month
+              <ArrowUp size={12} color="#10B981" /> {scoreDiff}
             </div>
           </div>
         </div>
@@ -77,14 +84,18 @@ export function OptimizerHero() {
               <CreditCardIcon size={16} color="#10B981" />
             </div>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF' }}>On Track</div>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>You're doing great!</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF' }}>
+                {budgetUsedPct > 100 ? 'Over Budget' : budgetUsedPct > 85 ? 'Critical' : 'On Track'}
+              </div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
+                {budgetUsedPct > 100 ? 'Reduce spending!' : "You're doing great!"}
+              </div>
             </div>
           </div>
           <div style={{ background: 'rgba(255,255,255,0.1)', borderRadius: 999, height: 6, overflow: 'hidden' }}>
-            <div style={{ width: '78%', height: '100%', background: '#10B981', borderRadius: 999 }} />
+            <div style={{ width: `${Math.min(100, budgetUsedPct)}%`, height: '100%', background: budgetUsedPct > 100 ? '#EF4444' : '#10B981', borderRadius: 999 }} />
           </div>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 6 }}>78% used</div>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 6 }}>{budgetUsedPct}% used</div>
         </div>
       </div>
     </div>
@@ -92,67 +103,81 @@ export function OptimizerHero() {
 }
 
 // ─── Insight Cards ──────────────────────────────────────────────────────────────
-export function InsightCards() {
-  const cards = [
+export function InsightCards({ cards = [] }) {
+  const getIconConfig = (type) => {
+    switch (type) {
+      case 'duplicate':
+        return { icon: <DuplicateIcon size={22} color="#10B981" />, iconBg: '#D1FAE5' };
+      case 'pricedrop':
+        return { icon: <TagIcon size={22} color="#8B5CF6" />, iconBg: '#EDE9FE' };
+      case 'bulk':
+        return { icon: <ShoppingCart size={22} color="#3B82F6" />, iconBg: '#DBEAFE' };
+      case 'impulse':
+        return { icon: <WasteIcon size={22} color="#EF4444" />, iconBg: '#FEE2E2' };
+      default:
+        return { icon: <ShoppingCart size={22} color="#10B981" />, iconBg: '#D1FAE5' };
+    }
+  };
+
+  const localCards = cards.length > 0 ? cards : [
     {
-      icon: <DuplicateIcon size={22} color="#10B981" />,
-      iconBg: '#D1FAE5',
+      type: 'duplicate',
       title: 'Duplicate Detector',
-      body: <>You bought <strong>Toothpaste</strong> 5 days ago. Do you really need another one?</>,
+      body: 'You bought Toothpaste 5 days ago. Do you really need another one?',
       linkText: 'View Item',
     },
     {
-      icon: <TagIcon size={22} color="#8B5CF6" />,
-      iconBg: '#EDE9FE',
+      type: 'pricedrop',
       title: 'Price Drop Alert',
-      body: <>Cooking Oil prices likely to drop in 10 days. Wait and save up to <span style={{ color: '#10B981', fontWeight: 700 }}>₹45</span></>,
+      body: 'Cooking Oil prices likely to drop in 10 days. Wait and save up to ₹45',
       linkText: 'View Forecast',
     },
     {
-      icon: <ShoppingCart size={22} color="#3B82F6" />,
-      iconBg: '#DBEAFE',
+      type: 'bulk',
       title: 'Bulk Buying Suggestion',
-      body: <>Buy 5kg Rice instead of 1kg every week.<br /><span style={{ color: '#10B981', fontSize: 12, fontWeight: 600 }}>Estimated yearly savings ₹642</span></>,
+      body: 'Buy 5kg Rice instead of 1kg every week. Estimated yearly savings ₹642',
       linkText: 'View Forecast',
     },
     {
-      icon: <WasteIcon size={22} color="#EF4444" />,
-      iconBg: '#FEE2E2',
+      type: 'impulse',
       title: 'Wasted Money',
-      body: <>Impulse spending <span style={{ color: '#EF4444', fontWeight: 700 }}>₹1,254</span> mostly on snacks after 8 PM.</>,
+      body: 'Impulse spending ₹1,254 mostly on snacks after 8 PM.',
       linkText: 'See Breakdown',
     },
   ];
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20, marginBottom: 32 }}>
-      {cards.map((card, i) => (
-        <div key={i} style={{ background: '#FFFFFF', border: '1px solid #F1F5F9', borderRadius: 20, padding: '20px 20px 16px', boxShadow: '0 2px 12px rgba(0,0,0,0.02)' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: card.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              {card.icon}
+      {localCards.map((card, i) => {
+        const config = getIconConfig(card.type);
+        return (
+          <div key={i} style={{ background: '#FFFFFF', border: '1px solid #F1F5F9', borderRadius: 20, padding: '20px 20px 16px', boxShadow: '0 2px 12px rgba(0,0,0,0.02)' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: config.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {config.icon}
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', paddingTop: 8 }}>{card.title}</div>
             </div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', paddingTop: 8 }}>{card.title}</div>
+            <p style={{ fontSize: 13, color: '#64748B', lineHeight: 1.5, margin: '0 0 16px 0' }}>{card.body}</p>
+            <a href="#" style={{ fontSize: 13, color: '#154539', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
+              {card.linkText} →
+            </a>
           </div>
-          <p style={{ fontSize: 13, color: '#64748B', lineHeight: 1.5, margin: '0 0 16px 0' }}>{card.body}</p>
-          <a href="#" style={{ fontSize: 13, color: '#154539', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
-            {card.linkText} →
-          </a>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
 // ─── Bottom: Recommendations + Reorder ─────────────────────────────────────────
-export function BottomSection() {
-  const recommendations = [
+export function BottomSection({ recommendations = [], reorders = [] }) {
+  const localRecs = recommendations.length > 0 ? recommendations : [
     { name: "Switch to 'Fortune Sunlite Oil' instead of 'Saffola Gold'", sub: 'Similar quality, 4.8 ★ rating', unit: 'per unit', save: '₹48' },
     { name: 'Mother Dairy Butter is cheaper on Amazon Fresh.', sub: 'Same quality', unit: 'per unit', save: '₹9' },
     { name: 'Remove duplicate shampoo from your list.', sub: 'You have enough stock', unit: 'this month', save: '₹120' },
   ];
 
-  const reorders = [
+  const localReorders = reorders.length > 0 ? reorders : [
     { name: 'Milk (Amul)', sub: 'Every 8 days', next: 'Next in 2 days', date: '24 May' },
     { name: 'Sunflower Oil', sub: 'Every 30 days', next: 'Next in 12 days', date: '1 Jun' },
     { name: 'Washing Powder', sub: 'Every 28 days', next: 'Next in 8 days', date: '30 May' },
@@ -164,10 +189,10 @@ export function BottomSection() {
       <div style={{ background: '#FFFFFF', border: '1px solid #F1F5F9', borderRadius: 20, padding: 28, boxShadow: '0 2px 12px rgba(0,0,0,0.02)' }}>
         <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0F172A', margin: '0 0 24px 0' }}>Top Recommendations for You</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          {recommendations.map((r, i) => (
+          {localRecs.map((r, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <div style={{ width: 48, height: 48, borderRadius: 10, background: '#F8FAFC', border: '1px solid #E2E8F0', overflow: 'hidden', flexShrink: 0 }}>
-                <img src={`https://source.unsplash.com/48x48/?grocery,product&sig=${i}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.target.style.display = 'none'} />
+                <img src={`https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=48&h=48&sig=${i}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.target.style.display = 'none'} />
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: '#0F172A', marginBottom: 3 }}>{r.name}</div>
@@ -189,10 +214,10 @@ export function BottomSection() {
           <a href="#" style={{ fontSize: 12, color: '#10B981', fontWeight: 600, textDecoration: 'none' }}>View All</a>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          {reorders.map((r, i) => (
+          {localReorders.map((r, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <div style={{ width: 48, height: 48, borderRadius: 10, background: '#F8FAFC', border: '1px solid #E2E8F0', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
-                {i === 0 ? '🥛' : i === 1 ? '🌻' : '🧺'}
+                {r.name.toLowerCase().includes('milk') ? '🥛' : r.name.toLowerCase().includes('oil') ? '🌻' : '🧺'}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: '#0F172A', marginBottom: 3 }}>{r.name}</div>
@@ -214,12 +239,14 @@ export function BottomSection() {
 }
 
 // ─── Right Panel: Savings Breakdown ────────────────────────────────────────────
-export function SavingsBreakdownPanel() {
-  const data = [
+export function SavingsBreakdownPanel({ categoryData = [], totalSavings = 1284 }) {
+  const defaultData = [
     { name: 'Groceries', value: 620, color: '#10B981', percent: '48%' },
     { name: 'Daily Needs', value: 354, color: '#F59E0B', percent: '28%' },
     { name: 'Electronics', value: 310, color: '#8B5CF6', percent: '24%' },
   ];
+
+  const data = categoryData.length > 0 ? categoryData : defaultData;
 
   return (
     <div style={{ background: '#FFFFFF', border: '1px solid #F1F5F9', borderRadius: 20, padding: 24, marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.02)' }}>
@@ -237,7 +264,7 @@ export function SavingsBreakdownPanel() {
           </PieChart>
         </ResponsiveContainer>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ fontSize: 18, fontWeight: 800, color: '#0F172A' }}>₹1,284</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: '#0F172A' }}>₹{totalSavings.toLocaleString()}</div>
           <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 600 }}>Total Savings</div>
         </div>
       </div>
@@ -250,7 +277,7 @@ export function SavingsBreakdownPanel() {
               <span style={{ color: '#334155', fontWeight: 500 }}>{d.name}</span>
             </div>
             <div style={{ display: 'flex', gap: 16 }}>
-              <span style={{ color: '#94A3B8', width: 30, textAlign: 'right' }}>{d.percent}</span>
+              <span style={{ color: '#94A3B8', width: 45, textAlign: 'right' }}>{d.percent}</span>
               <span style={{ fontWeight: 700, color: '#0F172A' }}>₹{d.value}</span>
             </div>
           </div>
@@ -261,12 +288,14 @@ export function SavingsBreakdownPanel() {
 }
 
 // ─── Right Panel: Store Optimizer ──────────────────────────────────────────────
-export function StoreOptimizerPanel() {
-  const stores = [
-    { name: 'Blinkit', price: '₹2,180', tag: 'Cheapest', tagColor: '#10B981', tagBg: '#D1FAE5', change: null },
-    { name: 'Zepto', price: '₹2,410', tag: '+₹230', tagColor: '#EF4444', tagBg: '#FEE2E2', change: '+' },
-    { name: 'Instamart', price: '₹2,365', tag: '+₹185', tagColor: '#EF4444', tagBg: '#FEE2E2', change: '+' },
+export function StoreOptimizerPanel({ stores = [] }) {
+  const defaultStores = [
+    { name: 'Blinkit', price: '₹2,180', tag: 'Cheapest', tagColor: '#10B981', tagBg: '#D1FAE5' },
+    { name: 'Zepto', price: '₹2,410', tag: '+₹230', tagColor: '#EF4444', tagBg: '#FEE2E2' },
+    { name: 'Instamart', price: '₹2,365', tag: '+₹185', tagColor: '#EF4444', tagBg: '#FEE2E2' },
   ];
+
+  const localStores = stores.length > 0 ? stores : defaultStores;
 
   return (
     <div style={{ background: '#FFFFFF', border: '1px solid #F1F5F9', borderRadius: 20, padding: 24, marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.02)' }}>
@@ -274,13 +303,13 @@ export function StoreOptimizerPanel() {
         <h3 style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', margin: 0 }}>Store Optimizer</h3>
         <span style={{ fontSize: 11, color: '#64748B', background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '4px 8px', borderRadius: 6 }}>This Week ▾</span>
       </div>
-      <p style={{ fontSize: 12, color: '#94A3B8', margin: '0 0 20px 0' }}>Based on your list of 24 items</p>
+      <p style={{ fontSize: 12, color: '#94A3B8', margin: '0 0 20px 0' }}>Based on your recent grocery items</p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {stores.map((s, i) => (
+        {localStores.map((s, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ width: 40, height: 40, borderRadius: 10, background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
-              {i === 0 ? '🟡' : i === 1 ? '🔵' : '🟠'}
+              {s.name.includes('Blinkit') ? '🟡' : s.name.includes('Zepto') ? '🔵' : '🟠'}
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 14, fontWeight: 600, color: '#0F172A' }}>{s.name}</div>
@@ -301,11 +330,11 @@ export function StoreOptimizerPanel() {
 }
 
 // ─── Right Panel: AI Budget Planner ────────────────────────────────────────────
-export function BudgetPlannerPanel() {
-  const budget = 8000;
-  const spent = 6240;
-  const remaining = budget - spent;
-  const pct = Math.round((spent / budget) * 100);
+export function BudgetPlannerPanel({ budgetData }) {
+  const budget = budgetData?.limit ?? 8000;
+  const spent = budgetData?.spent ?? 6240;
+  const remaining = budgetData?.remaining ?? (budget - spent);
+  const pct = budgetData?.usedPct ?? Math.round((spent / budget) * 100);
 
   return (
     <div style={{ background: '#FFFFFF', border: '1px solid #F1F5F9', borderRadius: 20, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.02)' }}>
@@ -321,7 +350,7 @@ export function BudgetPlannerPanel() {
       </div>
 
       <div style={{ background: '#F1F5F9', borderRadius: 999, height: 8, overflow: 'hidden', marginBottom: 16 }}>
-        <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #10B981, #059669)', borderRadius: 999 }} />
+        <div style={{ width: `${Math.min(100, pct)}%`, height: '100%', background: pct > 100 ? 'linear-gradient(90deg, #EF4444, #DC2626)' : 'linear-gradient(90deg, #10B981, #059669)', borderRadius: 999 }} />
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 8 }}>
@@ -331,7 +360,7 @@ export function BudgetPlannerPanel() {
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ color: '#94A3B8', marginBottom: 2 }}>Remaining</div>
-          <div style={{ fontWeight: 700, color: '#10B981' }}>₹{remaining.toLocaleString()}</div>
+          <div style={{ fontWeight: 700, color: pct > 100 ? '#EF4444' : '#10B981' }}>₹{remaining.toLocaleString()}</div>
         </div>
       </div>
       <div style={{ fontSize: 11, color: '#94A3B8' }}>{pct}% Used</div>

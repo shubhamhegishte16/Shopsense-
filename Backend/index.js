@@ -53,6 +53,7 @@ app.use("/api/chat", require("./routes/chatRoutes"));
 app.use("/api/insights", require("./routes/insightsRoutes"));
 app.use("/api/profile", require("./routes/profileRoutes"));
 app.use("/api/settings", require("./routes/settingsRoutes"));
+app.use("/api/optimizer", require("./routes/optimizerRoutes"));
 
 // ─── 404 Handler ────────────────────────────────────────────────────────────────
 app.use((req, res) => {
