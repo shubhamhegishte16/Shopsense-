@@ -189,6 +189,63 @@ async function extractReceiptData(buffer, mimeType) {
   }
 }
 
+/**
+ * Uses Gemini to search for real-time comparison data of a product across various stores.
+ */
+async function compareProducts({ productName, brand, category, description }) {
+  try {
+    const isGeneralEcom = ['electronics', 'furniture', 'clothing', 'household', 'appliances', 'general'].includes((category || '').toLowerCase());
+    
+    // Choose the target stores based on category
+    const targetStores = isGeneralEcom 
+      ? "Amazon, Flipkart, Croma, Reliance Digital, Myntra" 
+      : "Blinkit, Zepto, Swiggy Instamart, BigBasket, Amazon Fresh";
+
+    const prompt = `You are a real-time smart shopping assistant. The user wants to compare the following product across multiple Indian online stores. 
+
+Product Name: ${productName}
+Brand: ${brand || 'Any'}
+Category: ${category || 'Unknown'}
+Additional Details: ${description || 'None'}
+
+Please provide realistic, up-to-date pricing and details for this exact product across the following stores: ${targetStores}. 
+If a store doesn't sell it, you can omit it, but try to provide at least 3-4 store options.
+
+Return the result as a strict JSON array of objects. 
+Each object must match this schema:
+{
+  "store": "Store Name",
+  "price": 1299, // Current selling price in INR as a number
+  "mrp": 1599, // Original MRP in INR as a number
+  "discount": "15%", // String format
+  "deliveryTime": "Tomorrow" or "10 mins",
+  "rating": 4.5, // Number
+  "link": "https://example.com/product-link"
+}
+
+Do not include markdown blocks, just return the raw JSON array. Make sure the JSON is valid.`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.5-flash-lite',
+      contents: prompt,
+      config: {
+        temperature: 0.2, // Low temperature for more factual responses
+      }
+    });
+
+    const responseText = response.text || '';
+    
+    // Clean up response if Gemini wrapped it in markdown code block
+    const cleanedText = responseText.replace(/```json\n?|\n?```/gi, '').trim();
+    
+    return JSON.parse(cleanedText);
+  } catch (error) {
+    console.error('Gemini comparison error:', error);
+    throw new Error('Failed to generate product comparison with AI');
+  }
+}
+
 module.exports = {
   extractReceiptData,
+  compareProducts
 };

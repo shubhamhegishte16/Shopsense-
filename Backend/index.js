@@ -54,6 +54,7 @@ app.use("/api/insights", require("./routes/insightsRoutes"));
 app.use("/api/profile", require("./routes/profileRoutes"));
 app.use("/api/settings", require("./routes/settingsRoutes"));
 app.use("/api/optimizer", require("./routes/optimizerRoutes"));
+app.use("/api/compare", require("./routes/compareRoutes"));
 
 // ─── 404 Handler ────────────────────────────────────────────────────────────────
 app.use((req, res) => {
