@@ -47,8 +47,8 @@ function buildSystemPrompt(user, receipts = [], pantryItems = []) {
     .map(([cat, amt]) => `${cat}: ₹${amt.toFixed(0)}`)
     .join(', ');
 
-  return `You are ShopSense AI — a friendly, intelligent personal shopping assistant.
-You help users track their grocery spending, manage their pantry, and save money.
+return `You are ShopSense AI — a friendly, intelligent personal shopping assistant.
+You help users track their spending, manage their inventory (groceries, electronics, household, etc.), and save money across all their online purchases.
 
 USER PROFILE:
 - Name: ${userName}
