@@ -759,10 +759,10 @@ export default function Settings() {
 
   return (
     <SettingsCtx.Provider value={{ settings, userMeta, reload: load }}>
-      <div style={{ display: 'flex', minHeight: '100vh', background: '#FAFCFC', fontFamily: "'Inter', sans-serif" }}>
-        <Sidebar />
+      <div className="page-wrapper">
+        <div className="sidebar-wrapper"><Sidebar /></div>
 
-        <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', height: '100vh' }}>
+        <main className="responsive-main">
           <TopNav titleNode={
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
@@ -773,10 +773,10 @@ export default function Settings() {
             </div>
           } />
 
-          <div style={{ padding: '0 40px 48px' }}>
-            <div style={{ display: 'flex', gap: 24 }}>
+          <div className="responsive-padding" style={{ paddingTop: 0 }}>
+            <div className="content-with-right">
               {/* Settings Sub-Nav */}
-              <div style={{ width: 210, flexShrink: 0 }}>
+              <div className="settings-subnav">
                 <div style={{ background: '#FFF', borderRadius: 20, padding: '12px', border: '1px solid #F1F5F9', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {settingsSections.map(sec => {
                     const isActive = section === sec.id;
@@ -826,8 +826,9 @@ export default function Settings() {
                 )}
               </div>
 
-              {/* Right Panel */}
-              <SettingsRightPanel />
+              <div className="right-panel-aside">
+                <SettingsRightPanel />
+              </div>
             </div>
           </div>
         </main>

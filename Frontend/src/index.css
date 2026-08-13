@@ -516,11 +516,111 @@ body {
 }
 [data-theme="dark"] button[style*="background: #F8FAFC"],
 [data-theme="dark"] button[style*="background: #FAFCFC"],
-[data-theme="dark"] button[style*="background: #F0FDF4"],
-[data-theme="dark"] button[style*="background: #FFF"],
-[data-theme="dark"] button[style*="background:#FFF"],
 [data-theme="dark"] button[style*="background: #FFFFFF"] {
   background: var(--up-surface) !important;
   border-color: var(--up-border) !important;
   color: var(--up-body) !important;
 }
+
+/* ── Responsive Utilities for Dashboard ── */
+.responsive-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+.responsive-grid-3 {
+  display: grid;
+  grid-template-columns: 1.2fr 2fr 1.2fr;
+  gap: 24px;
+}
+.responsive-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.responsive-padding {
+  padding: 0 40px 40px;
+}
+.responsive-flex-wrap {
+  display: flex;
+}
+.responsive-main {
+  flex: 1; 
+  display: flex; 
+  flex-direction: column; 
+  overflow-y: auto; 
+  height: 100vh;
+}
+.sidebar-wrapper {
+  display: block;
+}
+
+/* Page wrapper: flex row with sidebar + main */
+.page-wrapper {
+  display: flex;
+  min-height: 100vh;
+  background: #FAFCFC;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Right side panels (width: 300) */
+.right-panel-aside {
+  width: 300px;
+  flex-shrink: 0;
+}
+
+/* Inner content flex (main + right panel) */
+.content-with-right {
+  display: flex;
+  gap: 32px;
+}
+
+/* Settings sub-nav */
+.settings-subnav {
+  width: 210px;
+  flex-shrink: 0;
+}
+
+/* Chat history panel */
+.chat-history-wrapper {
+  display: block;
+}
+.chat-right-wrapper {
+  display: block;
+}
+
+/* TopNav padding */
+.topnav-pad {
+  padding: 32px 40px 24px;
+}
+
+/* ── Tablet (768px – 1024px) ── */
+@media (max-width: 1024px) {
+  .responsive-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .responsive-grid-3 { grid-template-columns: 1fr; }
+  .responsive-grid-2 { grid-template-columns: 1fr; }
+  .right-panel-aside { display: none; }
+  .chat-right-wrapper { display: none; }
+  .settings-subnav { width: 180px; }
+}
+
+/* ── Mobile (< 768px) ── */
+@media (max-width: 767px) {
+  .responsive-grid-4 { grid-template-columns: 1fr; gap: 16px; }
+  .responsive-grid-3 { grid-template-columns: 1fr; gap: 16px; }
+  .responsive-grid-2 { grid-template-columns: 1fr; gap: 16px; }
+  .responsive-padding { padding: 0 16px 20px; }
+  .responsive-flex-wrap { flex-direction: column; }
+  .responsive-main { height: auto; min-height: 100vh; }
+  .sidebar-wrapper { display: none; }
+  .right-panel-aside { display: none; }
+  .content-with-right { flex-direction: column; gap: 16px; }
+  .page-wrapper { flex-direction: column; }
+  .page-wrapper > .sidebar-wrapper { display: none; }
+  .page-wrapper > main { height: auto; min-height: 100vh; }
+  .settings-subnav { display: none; }
+  .chat-history-wrapper { display: none; }
+  .chat-right-wrapper { display: none; }
+  .topnav-pad { padding: 20px 16px 16px; }
+}
+

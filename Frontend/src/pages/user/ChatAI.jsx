@@ -33,22 +33,19 @@ export default function ChatAI() {
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      minHeight: '100vh',
-      background: '#FAFCFC',
-      fontFamily: "'Inter', sans-serif",
-    }}>
+    <div className="page-wrapper">
       {/* Left Nav Sidebar */}
-      <Sidebar />
+      <div className="sidebar-wrapper"><Sidebar /></div>
 
       {/* Chat History Panel */}
-      <ChatHistoryPanel
-        activeId={activeChatId}
-        onSelect={setActiveChatId}
-        onNewChat={handleNewChat}
-        onClear={handleClear}
-      />
+      <div className="chat-history-wrapper">
+        <ChatHistoryPanel
+          activeId={activeChatId}
+          onSelect={setActiveChatId}
+          onNewChat={handleNewChat}
+          onClear={handleClear}
+        />
+      </div>
 
       {/* Center: Top Bar + Chat Messages + Input */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -62,8 +59,9 @@ export default function ChatAI() {
         />
       </div>
 
-      {/* Right AI Panel */}
-      <ChatRightPanel onTopicSelect={handleTopicSelect} />
+      <div className="chat-right-wrapper">
+        <ChatRightPanel onTopicSelect={handleTopicSelect} />
+      </div>
     </div>
   );
 }

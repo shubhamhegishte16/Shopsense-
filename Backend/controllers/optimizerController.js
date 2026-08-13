@@ -48,9 +48,9 @@ exports.getOptimizerData = async (req, res) => {
     const thisMonthDiscounts = receiptsThisMonth.reduce((sum, r) => sum + (r.discounts || 0), 0);
     const lastMonthDiscounts = receiptsLastMonth.reduce((sum, r) => sum + (r.discounts || 0), 0);
 
-    // Let's calculate AI-driven savings: discounts + 6% optimization opportunities found by AI
-    const thisMonthSavings = Math.round(thisMonthDiscounts + (thisMonthSpent * 0.06)) || 1284;
-    const lastMonthSavings = Math.round(lastMonthDiscounts + (lastMonthSpent * 0.06)) || 1050;
+    // Calculate AI-driven savings: discounts + 6% optimization opportunities found by AI
+    const thisMonthSavings = Math.round(thisMonthDiscounts + (thisMonthSpent * 0.06)) || 0;
+    const lastMonthSavings = Math.round(lastMonthDiscounts + (lastMonthSpent * 0.06)) || 0;
 
     // Budget Progress
     const budgetLimit = user.settings?.budget?.monthlyLimit || 8000;
@@ -102,28 +102,17 @@ exports.getOptimizerData = async (req, res) => {
       });
     });
 
-    // Default categories if empty to keep UI premium
-    const defaultCats = [
-      { name: 'Groceries', value: 620, color: '#10B981', percent: '48%' },
-      { name: 'Daily Needs', value: 354, color: '#F59E0B', percent: '28%' },
-      { name: 'Electronics', value: 310, color: '#8B5CF6', percent: '24%' },
-    ];
-
     let categoryData = Object.entries(categorySavingsMap).map(([name, value]) => ({
       name,
       value: Math.round(value),
     }));
 
-    if (categoryData.length === 0) {
-      categoryData = defaultCats;
-    } else {
-      const colors = ['#10B981', '#F59E0B', '#8B5CF6', '#3B82F6', '#EF4444'];
-      const totalVal = categoryData.reduce((s, c) => s + c.value, 0) || 1;
-      categoryData.forEach((c, idx) => {
-        c.color = colors[idx % colors.length];
-        c.percent = Math.round((c.value / totalVal) * 100) + '%';
-      });
-    }
+    const colors = ['#10B981', '#F59E0B', '#8B5CF6', '#3B82F6', '#EF4444'];
+    const totalVal = categoryData.reduce((s, c) => s + c.value, 0) || 1;
+    categoryData.forEach((c, idx) => {
+      c.color = colors[idx % colors.length];
+      c.percent = Math.round((c.value / totalVal) * 100) + '%';
+    });
 
     // 7. Dynamic Insight Cards
     // Card 1: Duplicate Detector
@@ -138,25 +127,25 @@ exports.getOptimizerData = async (req, res) => {
       duplicateBody = `Pantry status: You have ${sampleItem.quantity} ${sampleItem.unit || 'units'} of ${sampleItem.name} in stock.`;
       duplicateItemName = sampleItem.name;
     } else {
-      duplicateBody = `You bought Toothpaste 5 days ago. Do you really need another one?`;
-      duplicateItemName = 'Toothpaste';
+      duplicateBody = `No duplicate purchases detected. Great job!`;
+      duplicateItemName = '';
     }
 
     // Card 2: Price Drop Alert
-    const priceDropItem = receiptsThisMonth.length > 0 ? (receiptsThisMonth[0].items?.[0]?.name || 'Cooking Oil') : 'Cooking Oil';
-    const priceDropBody = `${priceDropItem} prices likely to drop in 10 days. Wait and save up to ₹45.`;
+    const priceDropItem = receiptsThisMonth.length > 0 && receiptsThisMonth[0].items?.length > 0 ? receiptsThisMonth[0].items[0].name : null;
+    const priceDropBody = priceDropItem ? `${priceDropItem} prices likely to drop in 10 days. Wait and save up to ₹45.` : 'Upload more receipts for price drop alerts.';
 
     // Card 3: Bulk Buying Suggestion
-    const bulkItem = pantryItems.length > 1 ? pantryItems[1].name : (receiptsThisMonth[0]?.items?.[1]?.name || 'Rice');
-    const bulkBody = `Buy 5kg ${bulkItem} instead of 1kg every week. Estimated yearly savings ₹642.`;
+    const bulkItem = pantryItems.length > 1 ? pantryItems[1].name : (receiptsThisMonth.length > 0 && receiptsThisMonth[0].items?.length > 1 ? receiptsThisMonth[0].items[1].name : null);
+    const bulkBody = bulkItem ? `Buy 5kg ${bulkItem} instead of 1kg every week. Estimated yearly savings ₹642.` : 'Upload more receipts for bulk buying suggestions.';
 
     // Card 4: Impulse / Wasted Money
     const snacksCategoryTotal = receiptsThisMonth.reduce((sum, r) => {
       const snackItems = (r.items || []).filter(i => i.category === 'Snacks & Beverages' || i.category === 'Snacks' || i.name.toLowerCase().includes('chips') || i.name.toLowerCase().includes('coke') || i.name.toLowerCase().includes('chocolate'));
       return sum + snackItems.reduce((s, i) => s + (i.totalPrice || 0), 0);
     }, 0);
-    const impulseSpend = snacksCategoryTotal || 1254;
-    const impulseBody = `Impulse spending ₹${impulseSpend.toLocaleString()} mostly on snacks and beverages.`;
+    const impulseSpend = snacksCategoryTotal || 0;
+    const impulseBody = impulseSpend > 0 ? `Impulse spending ₹${impulseSpend.toLocaleString()} mostly on snacks and beverages.` : `No major impulse spending detected.`;
 
     const insightCards = [
       {
@@ -187,45 +176,54 @@ exports.getOptimizerData = async (req, res) => {
     ];
 
     // 8. Recommendations (Substitutions)
-    const recommendations = [
-      { name: "Switch to 'Fortune Sunlite Oil' instead of 'Saffola Gold'", sub: 'Similar quality, 4.8 ★ rating', unit: 'per unit', save: '₹48' },
-      { name: 'Mother Dairy Butter is cheaper on Amazon Fresh.', sub: 'Same quality', unit: 'per unit', save: '₹9' },
-      { name: 'Remove duplicate shampoo from your list.', sub: 'You have enough stock', unit: 'this month', save: '₹120' },
-    ];
-
-    // Try to personalize one recommendation based on user's recent purchases
-    if (receiptsThisMonth.length > 0 && receiptsThisMonth[0].items?.length > 0) {
-      const item = receiptsThisMonth[0].items[0];
-      if (item.category === 'Groceries') {
-        recommendations.unshift({
-          name: `Switch to local or store-brand ${item.name}`,
-          sub: 'Identical ingredients, higher savings',
-          unit: 'per unit',
-          save: `₹${Math.round(item.unitPrice * 0.15) || '15'}`
+    const recommendations = [];
+    if (receiptsThisMonth.length > 0) {
+      receiptsThisMonth.forEach(r => {
+        (r.items || []).forEach(item => {
+          if (recommendations.length < 3) {
+            recommendations.push({
+              name: `Switch to local or store-brand ${item.name}`,
+              sub: 'Identical ingredients, higher savings',
+              unit: 'per unit',
+              save: `₹${Math.round((item.totalPrice || item.price || 100) * 0.15) || '15'}`
+            });
+          }
         });
-        recommendations.pop();
-      }
+      });
     }
 
     // 9. Reorder Insights
-    const reorders = [
-      { name: 'Milk (Amul)', sub: 'Every 8 days', next: 'Next in 2 days', date: '24 May' },
-      { name: 'Sunflower Oil', sub: 'Every 30 days', next: 'Next in 12 days', date: '1 Jun' },
-      { name: 'Washing Powder', sub: 'Every 28 days', next: 'Next in 8 days', date: '30 May' },
-    ];
-
-    // If pantry items exist, generate a real reorder item!
+    const reorders = [];
+    
     if (pantryItems.length > 0) {
-      const lowStockItem = pantryItems.find(i => i.status === 'low_stock');
-      if (lowStockItem) {
-        reorders.unshift({
-          name: lowStockItem.name,
-          sub: `Running low (${lowStockItem.quantity} left)`,
-          next: 'Reorder soon',
-          date: 'Now'
-        });
-        reorders.pop();
-      }
+      pantryItems.forEach(item => {
+        if (item.status === 'low_stock' || item.quantity < 2) {
+          if (reorders.length < 3) {
+            reorders.push({
+              name: item.name,
+              sub: `Running low (${item.quantity} left)`,
+              next: 'Reorder soon',
+              date: 'Now'
+            });
+          }
+        }
+      });
+    }
+    
+    // Add some based on recent purchases if not enough from pantry
+    if (reorders.length < 3 && receiptsThisMonth.length > 0) {
+       receiptsThisMonth.forEach(r => {
+           (r.items || []).forEach(item => {
+               if (reorders.length < 3 && item.category === 'Groceries') {
+                   reorders.push({
+                       name: item.name,
+                       sub: 'Every 15 days',
+                       next: 'Next in 7 days',
+                       date: 'Soon'
+                   });
+               }
+           });
+       });
     }
 
     // 10. Store Optimizer (Connected Apps based)
@@ -235,33 +233,37 @@ exports.getOptimizerData = async (req, res) => {
     const instamartConnected = connectedApps.find(a => a.name === 'Swiggy Instamart' || a.name === 'Swiggy')?.connected || false;
 
     // Simulate price comparison for recent items
-    const baseCartPrice = Math.round(thisMonthSpent * 0.3) || 1200;
-    const stores = [
-      {
-        name: 'Blinkit',
-        price: `₹${baseCartPrice}`,
-        tag: blinkitConnected ? 'Cheapest (Connected)' : 'Cheapest',
-        tagColor: '#10B981',
-        tagBg: '#D1FAE5',
-        connected: blinkitConnected
-      },
-      {
-        name: 'Zepto',
-        price: `₹${Math.round(baseCartPrice * 1.08)}`,
-        tag: `+₹${Math.round(baseCartPrice * 0.08)}`,
-        tagColor: '#EF4444',
-        tagBg: '#FEE2E2',
-        connected: zeptoConnected
-      },
-      {
-        name: 'Instamart',
-        price: `₹${Math.round(baseCartPrice * 1.05)}`,
-        tag: `+₹${Math.round(baseCartPrice * 0.05)}`,
-        tagColor: '#EF4444',
-        tagBg: '#FEE2E2',
-        connected: instamartConnected
-      },
-    ];
+    const baseCartPrice = Math.round(thisMonthSpent * 0.3) || 0;
+    let stores = [];
+    
+    if (baseCartPrice > 0) {
+      stores = [
+        {
+          name: 'Blinkit',
+          price: `₹${baseCartPrice}`,
+          tag: blinkitConnected ? 'Cheapest (Connected)' : 'Cheapest',
+          tagColor: '#10B981',
+          tagBg: '#D1FAE5',
+          connected: blinkitConnected
+        },
+        {
+          name: 'Zepto',
+          price: `₹${Math.round(baseCartPrice * 1.08)}`,
+          tag: `+₹${Math.round(baseCartPrice * 0.08)}`,
+          tagColor: '#EF4444',
+          tagBg: '#FEE2E2',
+          connected: zeptoConnected
+        },
+        {
+          name: 'Instamart',
+          price: `₹${Math.round(baseCartPrice * 1.05)}`,
+          tag: `+₹${Math.round(baseCartPrice * 0.05)}`,
+          tagColor: '#EF4444',
+          tagBg: '#FEE2E2',
+          connected: instamartConnected
+        },
+      ];
+    }
 
     res.json({
       success: true,

@@ -35,17 +35,12 @@ export default function Optimizer() {
   }, []);
 
   return (
-    <div style={{
-      display: 'flex',
-      minHeight: '100vh',
-      background: '#FAFCFC',
-      fontFamily: "'Inter', sans-serif"
-    }}>
+    <div className="page-wrapper">
       {/* Left Sidebar */}
-      <Sidebar />
+      <div className="sidebar-wrapper"><Sidebar /></div>
 
       {/* Main Content */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', height: '100vh' }}>
+      <main className="responsive-main">
         <TopNav titleNode={
           <div>
             <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.5px', margin: '0 0 4px 0' }}>
@@ -83,7 +78,7 @@ export default function Optimizer() {
             `}</style>
           </div>
         ) : (
-          <div style={{ padding: '0 40px 40px', display: 'flex', gap: 32 }}>
+          <div className="content-with-right responsive-padding">
 
             {/* Left: Main Content */}
             <div style={{ flex: 1 }}>
@@ -93,7 +88,7 @@ export default function Optimizer() {
             </div>
 
             {/* Right: Stats Panel */}
-            <div style={{ width: 300, flexShrink: 0, paddingTop: 76 }}>
+            <div className="right-panel-aside" style={{ paddingTop: 76 }}>
               <SavingsBreakdownPanel categoryData={data?.categoryData} totalSavings={data?.totalSavings} />
               <StoreOptimizerPanel stores={data?.stores} />
               <BudgetPlannerPanel budgetData={data?.budget} />

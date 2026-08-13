@@ -18,20 +18,15 @@ export default function Receipts() {
   const { receipts, loading, fetchError, fetchReceipts } = useReceipts(refreshTrigger);
 
   return (
-    <div style={{
-      display: 'flex',
-      minHeight: '100vh',
-      background: '#FAFCFC',
-      fontFamily: "'Inter', sans-serif"
-    }}>
+    <div className="page-wrapper">
       {/* Left Sidebar */}
-      <Sidebar />
+      <div className="sidebar-wrapper"><Sidebar /></div>
 
       {/* Main Content Area */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', height: '100vh' }}>
+      <main className="responsive-main">
         <TopNav showReceiptFilters={true} titleNode={<ReceiptsHeader />} />
         
-        <div style={{ padding: '0 40px 40px', maxWidth: 1400, margin: '0 auto', width: '100%', display: 'flex', gap: 32 }}>
+        <div className="content-with-right responsive-padding" style={{ maxWidth: 1400, margin: '0 auto', width: '100%' }}>
           
           {/* Left Column (Main) */}
           <div style={{ flex: 1 }}>
@@ -41,7 +36,7 @@ export default function Receipts() {
           </div>
 
           {/* Right Column (Sidebar for Receipts) */}
-          <div style={{ width: 300, flexShrink: 0, marginTop: 76 }}>
+          <div className="right-panel-aside" style={{ marginTop: 76 }}>
             <ReceiptSummaryPanel receipts={receipts} />
             <TopCategoriesPanel receipts={receipts} />
             <AIInsightPanel receipts={receipts} />

@@ -470,8 +470,8 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', minHeight: '100vh', background: '#FAFCFC', fontFamily: "'Inter', sans-serif" }}>
-        <Sidebar />
+      <div className="page-wrapper">
+        <div className="sidebar-wrapper"><Sidebar /></div>
         <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ color: '#64748B', fontWeight: 600 }}>Loading Profile...</div>
         </main>
@@ -480,9 +480,9 @@ export default function Profile() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#FAFCFC', fontFamily: "'Inter', sans-serif" }}>
-      <Sidebar />
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', height: '100vh' }}>
+    <div className="page-wrapper">
+      <div className="sidebar-wrapper"><Sidebar /></div>
+      <main className="responsive-main">
         <TopNav titleNode={
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
@@ -492,9 +492,9 @@ export default function Profile() {
             <p style={{ fontSize: 14, color: '#64748B', margin: 0 }}>Manage your personal information and preferences.</p>
           </div>
         } />
-        <div style={{ padding: '0 40px 48px' }}>
+        <div className="responsive-padding" style={{ paddingTop: 0 }}>
 
-          <div style={{ display: 'flex', gap: 28 }}>
+          <div className="content-with-right">
             <div style={{ flex: 1, minWidth: 0 }}>
 
               {/* Profile Card */}
@@ -573,7 +573,9 @@ export default function Profile() {
               </div>
             </div>
 
-            <ProfileRightPanel />
+            <div className="right-panel-aside">
+              <ProfileRightPanel />
+            </div>
           </div>
         </div>
       </main>

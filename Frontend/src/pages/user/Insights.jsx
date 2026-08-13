@@ -38,12 +38,12 @@ export default function Insights() {
   }, []);
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#FAFCFC', fontFamily: "'Inter', sans-serif" }}>
+    <div className="page-wrapper">
       {/* Left Sidebar */}
-      <Sidebar />
+      <div className="sidebar-wrapper"><Sidebar /></div>
 
       {/* Main Content */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', height: '100vh' }}>
+      <main className="responsive-main">
         <TopNav titleNode={
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
             <InsightsHeader />
@@ -51,7 +51,7 @@ export default function Insights() {
           </div>
         } />
 
-        <div style={{ padding: '0 40px 48px' }}>
+        <div className="responsive-padding" style={{ paddingTop: 0 }}>
 
           {loading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '100px 0' }}>
@@ -67,14 +67,14 @@ export default function Insights() {
               <InsightStatCards stats={data.stats} />
 
               {/* Main Grid: left 2/3 + right 1/3 */}
-              <div style={{ display: 'flex', gap: 24 }}>
+              <div className="content-with-right">
 
                 {/* Left Column */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <SpendingTrendPanel data={data.spendingTrendData} />
 
                   {/* Row: Category donut + Monthly Comparison */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 24 }}>
+                  <div className="responsive-grid-2" style={{ marginBottom: 24 }}>
                     <SpendingByCategoryPanel data={data.categoryData} totalSpent={data.totalSpent} />
                     <MonthlyComparisonPanel data={data.monthlyData} thisMonthTotal={data.totalSpent} lastMonthTotal={data.lastMonthTotal} />
                   </div>
@@ -83,7 +83,7 @@ export default function Insights() {
                 </div>
 
                 {/* Right Column */}
-                <div style={{ width: 300, flexShrink: 0 }}>
+                <div className="right-panel-aside">
                   <TopCategoriesPanel data={data.topCategories} />
                   <SmartSummaryPanel points={data.summaryPoints} totalSpent={data.totalSpent} lastMonthTotal={data.lastMonthTotal} />
                 </div>

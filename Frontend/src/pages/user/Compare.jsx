@@ -6,9 +6,9 @@ import { CompareHero, StoreComparisonTable, YouCanSavePanel, PriceTrendPanel, Sm
 
 function CompareTopNav({ titleNode, onOpenSearch }) {
   return (
-    <div style={{
+    <div className="topnav-pad" style={{
       display: 'flex', flexDirection: 'column',
-      padding: '32px 40px 24px', background: '#FAFCFC',
+      background: '#FAFCFC',
       position: 'sticky', top: 0, zIndex: 10,
       borderBottom: '1px solid #F1F5F9',
       width: '100%', boxSizing: 'border-box'
@@ -76,10 +76,10 @@ export default function Compare() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#FAFCFC', fontFamily: "'Inter', sans-serif" }}>
-      <Sidebar />
+    <div className="page-wrapper">
+      <div className="sidebar-wrapper"><Sidebar /></div>
 
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', height: '100vh' }}>
+      <main className="responsive-main">
         <CompareTopNav 
           onOpenSearch={() => setIsModalOpen(true)}
           titleNode={
@@ -126,7 +126,7 @@ export default function Compare() {
             </p>
           </div>
         ) : (
-          <div style={{ padding: '0 40px 40px', display: 'flex', gap: 32 }}>
+          <div className="content-with-right responsive-padding">
             {/* Main Content */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 24 }}>
               <CompareHero product={searchedProduct} />
@@ -134,7 +134,7 @@ export default function Compare() {
             </div>
 
             {/* Right Panel */}
-            <div style={{ width: 300, flexShrink: 0 }}>
+            <div className="right-panel-aside">
               <YouCanSavePanel product={searchedProduct} />
               <PriceTrendPanel product={searchedProduct} />
               <SmartPicksPanel />
