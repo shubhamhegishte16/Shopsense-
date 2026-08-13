@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { 
   Sparkles, ArrowRight, ShieldAlert, ArrowUpRight, Upload, 
-  ArrowDown, ArrowUp, Link, Globe
+  ArrowDown, ArrowUp, Link as LinkIcon, Globe
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-export function HeroCard() {
+export function HeroCard({ data }) {
+  const { totalSaved = 846, betterDeals = 6, increases = 2, recallAlert = 1 } = data || {};
   return (
     <div style={{
       background: 'linear-gradient(110deg, #154539 0%, #0F3028 100%)',
@@ -34,20 +36,20 @@ export function HeroCard() {
       </div>
 
       <div style={{ fontSize: 40, fontWeight: 800, marginBottom: 8, letterSpacing: '-1px' }}>
-        You saved <span style={{ color: '#10B981' }}>₹846</span>
+        You saved <span style={{ color: '#10B981' }}>₹{totalSaved}</span>
       </div>
       <div style={{ fontSize: 15, color: 'rgba(255,255,255,0.7)', marginBottom: 40 }}>
         this month with smarter choices.
       </div>
 
       <div style={{ display: 'flex', gap: 16, marginBottom: 40 }}>
-        <StatBadge icon={Sparkles} label="TOTAL SAVED" value="₹846" color="#10B981" />
-        <StatBadge icon={TagIcon} label="BETTER DEALS" value="6" color="#3B82F6" />
-        <StatBadge icon={ArrowUpRight} label="INCREASES" value="2" color="#F59E0B" />
-        <StatBadge icon={ShieldAlert} label="RECALL ALERT" value="1" color="#8B5CF6" />
+        <StatBadge icon={Sparkles} label="TOTAL SAVED" value={`₹${totalSaved}`} color="#10B981" />
+        <StatBadge icon={TagIcon} label="BETTER DEALS" value={betterDeals} color="#3B82F6" />
+        <StatBadge icon={ArrowUpRight} label="INCREASES" value={increases} color="#F59E0B" />
+        <StatBadge icon={ShieldAlert} label="RECALL ALERT" value={recallAlert} color="#8B5CF6" />
       </div>
 
-      <button style={{
+      <Link to="/insights" style={{
         background: '#FFFFFF',
         color: '#0F172A',
         border: 'none',
@@ -59,10 +61,11 @@ export function HeroCard() {
         alignItems: 'center',
         gap: 8,
         cursor: 'pointer',
-        boxShadow: '0 8px 16px rgba(0,0,0,0.1)'
+        boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
+        textDecoration: 'none'
       }}>
         View AI Report <ArrowRight size={16} />
-      </button>
+      </Link>
     </div>
   );
 }
@@ -99,20 +102,21 @@ function TagIcon(props) {
   );
 }
 
-export function ShoppingDNACard() {
+export function ShoppingDNACard({ data }) {
+  const { score = 87, persona = 'Budget Conscious', pointsChange = 6 } = data || {};
   return (
     <div style={cardStyle}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
-        <div style={iconWrapperStyle('#E0F2FE', '#0EA5E9')}><Link size={16} color="#0EA5E9" /></div>
+        <div style={iconWrapperStyle('#E0F2FE', '#0EA5E9')}><LinkIcon size={16} color="#0EA5E9" /></div>
         <h4 style={cardTitleStyle}>Shopping DNA</h4>
       </div>
       
       <div style={{ fontSize: 48, fontWeight: 800, color: '#0F172A', letterSpacing: '-2px', display: 'flex', alignItems: 'baseline', gap: 4 }}>
-        87 <span style={{ fontSize: 16, fontWeight: 600, color: '#94A3B8', letterSpacing: 0 }}>/ 100</span>
+        {score} <span style={{ fontSize: 16, fontWeight: 600, color: '#94A3B8', letterSpacing: 0 }}>/ 100</span>
       </div>
-      <div style={{ fontSize: 14, fontWeight: 600, color: '#334155', marginTop: 8 }}>Budget Conscious</div>
+      <div style={{ fontSize: 14, fontWeight: 600, color: '#334155', marginTop: 8 }}>{persona}</div>
       <div style={{ fontSize: 12, color: '#10B981', display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
-        <ArrowUp size={14} /> 6 pts <span style={{ color: '#94A3B8' }}>this month</span>
+        <ArrowUp size={14} /> {pointsChange} pts <span style={{ color: '#94A3B8' }}>this month</span>
       </div>
 
       <div style={{ height: 60, marginTop: 24, position: 'relative' }}>
@@ -124,7 +128,8 @@ export function ShoppingDNACard() {
   );
 }
 
-export function AISavingsCard() {
+export function AISavingsCard({ data }) {
+  const { potentialSavings = 1482 } = data || {};
   return (
     <div style={cardStyle}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
@@ -133,7 +138,7 @@ export function AISavingsCard() {
       </div>
       
       <div style={{ fontSize: 36, fontWeight: 800, color: '#0F172A', letterSpacing: '-1px' }}>
-        ₹1,482
+        ₹{potentialSavings}
       </div>
       <div style={{ fontSize: 12, color: '#64748B', lineHeight: 1.4, marginTop: 8, marginBottom: 24 }}>
         Potential savings<br/>this month
@@ -169,7 +174,7 @@ export function SmartReceiptCard() {
         </div>
         <p style={{ fontSize: 13, color: '#64748B', margin: 0, padding: '0 16px' }}>Drop your receipt here or click to upload</p>
       </div>
-      <button style={{
+      <Link to="/receipts" style={{
         background: '#FFFFFF',
         border: '1px solid #E2E8F0',
         borderRadius: 999,
@@ -180,12 +185,14 @@ export function SmartReceiptCard() {
         alignItems: 'center',
         justifyContent: 'center',
         gap: 6,
-        width: '100%',
+        width: '100%', // ensure it behaves well if wrapped
+        boxSizing: 'border-box',
         cursor: 'pointer',
-        color: '#154539'
+        color: '#154539',
+        textDecoration: 'none'
       }}>
         <Upload size={14} /> Upload Receipt
-      </button>
+      </Link>
     </div>
   );
 }
@@ -200,12 +207,8 @@ function ReceiptText(props) {
   );
 }
 
-export function PriceRadarCard() {
-  const items = [
-    { name: 'Milk', price: '₹8', up: false },
-    { name: 'Rice (1kg)', price: '₹32', up: true },
-    { name: 'Sunflower Oil', price: '₹41', up: false },
-  ];
+export function PriceRadarCard({ data }) {
+  const items = data || [];
 
   return (
     <div style={cardStyle}>
@@ -215,14 +218,18 @@ export function PriceRadarCard() {
       </div>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}>
-        {items.map((item, i) => (
-          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 13, color: '#334155', fontWeight: 500 }}>{item.name}</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: item.up ? '#EF4444' : '#10B981', fontSize: 13, fontWeight: 700 }}>
-              {item.up ? <ArrowUp size={14} /> : <ArrowDown size={14} />} {item.price}
+        {items.length === 0 ? (
+          <div style={{ fontSize: 13, color: '#94A3B8', textAlign: 'center', padding: '10px 0' }}>No recent price changes</div>
+        ) : (
+          items.map((item, i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 13, color: '#334155', fontWeight: 500 }}>{item.name}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: item.up ? '#EF4444' : '#10B981', fontSize: 13, fontWeight: 700 }}>
+                {item.up ? <ArrowUp size={14} /> : <ArrowDown size={14} />} {item.price}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       <a href="#" style={{ fontSize: 12, color: '#10B981', textDecoration: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -242,12 +249,8 @@ function TargetIcon(props) {
   );
 }
 
-export function RecentActivityCard() {
-  const activities = [
-    { name: 'D-Mart Ready', time: 'Today • ₹1,245', saved: 'Saved ₹128', color: '#154539' },
-    { name: 'Blinkit', time: 'Yesterday • ₹842', saved: 'Saved ₹56', color: '#F59E0B' },
-    { name: 'Amazon Fresh', time: '23 May • ₹1,320', saved: 'Saved ₹98', color: '#0F172A' },
-  ];
+export function RecentActivityCard({ data }) {
+  const activities = data || [];
 
   return (
     <div style={cardStyle}>
@@ -257,40 +260,38 @@ export function RecentActivityCard() {
       </div>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        {activities.map((act, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: '50%', background: act.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontSize: 10, fontWeight: 800, textAlign: 'center', lineHeight: 1.1 }}>
-              {act.name.split(' ')[0]}
+        {activities.length === 0 ? (
+          <div style={{ fontSize: 13, color: '#94A3B8', textAlign: 'center', padding: '20px 0' }}>No recent activity</div>
+        ) : (
+          activities.map((act, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: '50%', background: act.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontSize: 10, fontWeight: 800, textAlign: 'center', lineHeight: 1.1 }}>
+                {act.name.split(' ')[0]}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 2 }}>{act.name}</div>
+                <div style={{ fontSize: 12, color: '#94A3B8' }}>{act.time}</div>
+              </div>
+              <div style={{ background: '#D1FAE5', color: '#10B981', padding: '4px 10px', borderRadius: 20, fontSize: 12, fontWeight: 700 }}>
+                {act.saved}
+              </div>
             </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 2 }}>{act.name}</div>
-              <div style={{ fontSize: 12, color: '#94A3B8' }}>{act.time}</div>
-            </div>
-            <div style={{ background: '#D1FAE5', color: '#10B981', padding: '4px 10px', borderRadius: 20, fontSize: 12, fontWeight: 700 }}>
-              {act.saved}
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
 }
 
-export function SpendingChartCard() {
-  const data = [
-    { name: '1 May', value: 4000 },
-    { name: '8 May', value: 4200 },
-    { name: '15 May', value: 5800 },
-    { name: '22 May', value: 5500 },
-    { name: '29 May', value: 7842 },
-  ];
+export function SpendingChartCard({ data }) {
+  const chartData = data || [];
 
   return (
     <div style={cardStyle}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
           <h4 style={{...cardTitleStyle, marginBottom: 8}}>Your Spending</h4>
-          <div style={{ fontSize: 28, fontWeight: 800, color: '#0F172A', letterSpacing: '-1px' }}>₹7,842</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: '#0F172A', letterSpacing: '-1px' }}>₹{chartData.length > 0 ? chartData[chartData.length-1].value : 0}</div>
           <div style={{ fontSize: 12, color: '#10B981', display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
             <ArrowUp size={14} /> 8% <span style={{ color: '#94A3B8' }}>vs last month</span>
           </div>
@@ -302,7 +303,7 @@ export function SpendingChartCard() {
       
       <div style={{ height: 120, width: '100%' }}>
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data}>
+          <AreaChart data={chartData}>
             <defs>
               <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#10B981" stopOpacity={0.2}/>
@@ -322,13 +323,8 @@ export function SpendingChartCard() {
   );
 }
 
-export function PantryEssentialsCard() {
-  const items = [
-    { name: 'Milk', icon: '🥛', left: '2 DAYS LEFT', color: '#F59E0B', bg: '#FEF3C7' },
-    { name: 'Eggs', icon: '🥚', left: '4 DAYS LEFT', color: '#10B981', bg: '#D1FAE5' },
-    { name: 'Toilet Paper', icon: '🧻', left: '1 WEEK LEFT', color: '#10B981', bg: '#D1FAE5' },
-    { name: 'Cooking Oil', icon: '🍾', left: '5 DAYS LEFT', color: '#10B981', bg: '#D1FAE5' },
-  ];
+export function PantryEssentialsCard({ data }) {
+  const items = data || [];
 
   return (
     <div style={cardStyle}>
@@ -338,19 +334,23 @@ export function PantryEssentialsCard() {
       </div>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {items.map((item, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
-                {item.icon}
+        {items.length === 0 ? (
+          <div style={{ fontSize: 13, color: '#94A3B8', textAlign: 'center', padding: '20px 0' }}>No items expiring soon</div>
+        ) : (
+          items.map((item, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
+                  {item.icon}
+                </div>
+                <span style={{ fontSize: 14, color: '#0F172A', fontWeight: 600 }}>{item.name}</span>
               </div>
-              <span style={{ fontSize: 14, color: '#0F172A', fontWeight: 600 }}>{item.name}</span>
+              <div style={{ background: item.bg, color: item.color, padding: '4px 10px', borderRadius: 20, fontSize: 10, fontWeight: 800, letterSpacing: 0.5 }}>
+                {item.left}
+              </div>
             </div>
-            <div style={{ background: item.bg, color: item.color, padding: '4px 10px', borderRadius: 20, fontSize: 10, fontWeight: 800, letterSpacing: 0.5 }}>
-              {item.left}
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
