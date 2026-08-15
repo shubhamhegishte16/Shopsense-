@@ -19,6 +19,21 @@ const receiptSchema = new mongoose.Schema({
   totalAmount: { type: Number, required: true },
   status: { type: String, enum: ['pending', 'processed', 'flagged'], default: 'pending' },
   validationStatus: { type: String, enum: ['valid', 'mismatch'], default: 'valid' },
+  aiExtraction: {
+    raw: mongoose.Schema.Types.Mixed,
+    confidence: Number,
+    summary: String
+  },
+  adminNotes: [{
+    note: { type: String, required: true, trim: true },
+    adminId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    createdAt: { type: Date, default: Date.now }
+  }],
+  activity: [{
+    label: String,
+    description: String,
+    createdAt: { type: Date, default: Date.now }
+  }],
   createdAt: { type: Date, default: Date.now }
 });
 

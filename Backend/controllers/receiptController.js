@@ -42,7 +42,16 @@ exports.uploadReceipt = async (req, res) => {
       discounts: extractedData.discounts || 0,
       totalAmount: extractedData.totalAmount || 0,
       status: 'processed',
-      validationStatus
+      validationStatus,
+      aiExtraction: {
+        raw: extractedData,
+        summary: `Extracted ${extractedData.items?.length || 0} items from ${extractedData.storeName || 'receipt'}.`,
+      },
+      activity: [
+        { label: 'Uploaded', description: 'Receipt uploaded by user.' },
+        { label: 'AI Extraction', description: 'Receipt data extracted by Gemini.' },
+        { label: 'Validation', description: validationStatus === 'valid' ? 'Receipt totals matched extracted values.' : 'Receipt totals need review.' },
+      ]
     });
     const savedReceipt = await newReceipt.save();
     console.log("Receipt saved to MongoDB:", savedReceipt._id);
