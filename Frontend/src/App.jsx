@@ -12,6 +12,12 @@ import Insights from './pages/user/Insights'
 import ChatAI from './pages/user/ChatAI'
 import Profile from './pages/user/Profile'
 import Settings from './pages/user/Settings'
+import AdminDashboard from './pages/admin/AdminDashboard'
+import UserManagement from './pages/admin/UserManagement'
+import ReceiptManagement from './pages/admin/ReceiptManagement'
+import ProductDatabase from './pages/admin/ProductDatabase'
+import FoodRecallManagement from './pages/admin/FoodRecallManagement'
+import CommunityInsights from './pages/admin/CommunityInsights'
 
 export default function App() {
   return (
@@ -31,6 +37,12 @@ export default function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/:section" element={<Settings />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/users" element={<UserManagement />} />
+          <Route path="/admin/receipts" element={<ReceiptManagement />} />
+          <Route path="/admin/products" element={<ProductDatabase />} />
+          <Route path="/admin/recalls" element={<FoodRecallManagement />} />
+          <Route path="/admin/community" element={<CommunityInsights />} />
         </Routes>
       </Router>
     </ThemeProvider>

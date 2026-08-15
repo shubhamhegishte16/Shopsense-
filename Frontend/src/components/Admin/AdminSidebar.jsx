@@ -6,6 +6,7 @@ import {
   Boxes,
   ChevronRight,
   FileText,
+  Flag,
   Home,
   LogOut,
   Menu,
@@ -21,7 +22,8 @@ const navItems = [
   { id: 'users', label: 'User Management', icon: Users, path: '/admin/users' },
   { id: 'receipts', label: 'Receipt Management', icon: FileText, path: '/admin/receipts' },
   { id: 'products', label: 'Product Database', icon: Boxes, path: '/admin/products' },
-  { id: 'analytics', label: 'Analytics', icon: BarChart3, path: '/admin/analytics' },
+  { id: 'recalls', label: 'Food Recalls', icon: Flag, path: '/admin/recalls' },
+  { id: 'community', label: 'Community Insights', icon: BarChart3, path: '/admin/community' },
   { id: 'settings', label: 'Settings', icon: Settings, path: '/admin/settings' },
 ];
 

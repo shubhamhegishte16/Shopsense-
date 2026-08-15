@@ -27,3 +27,17 @@ export const products = [
   ['MDH Turmeric Powder 100 g', 'MDH', 'Grocery & Staples', 'More Supermarket', '28.00', 'Recalled', 'Active', 'Aug 12, 2026'],
   ['Dove Intense Repair Shampoo', 'Dove', 'Personal Care', 'Blinkit', '199.00', '-', 'Active', 'Aug 12, 2026'],
 ];
+
+export const recalls = [
+  ['RC-2026-00024', 'Amul Taaza Toned Milk 1 L', 'Amul', 'Possible contamination (Listeria)', 'High', 'Aug 14, 2026', 'Active', '512'],
+  ['RC-2026-00023', 'FreshFarm Spinach 250 g', 'FreshFarm', 'Incorrect allergen label', 'Medium', 'Aug 12, 2026', 'Active', '286'],
+  ['RC-2026-00022', 'NutriBite Protein Bar', 'NutriBite', 'Undeclared peanuts', 'High', 'Aug 10, 2026', 'Inactive', '174'],
+  ['RC-2026-00021', 'DailyFresh Paneer 200 g', 'DailyFresh', 'Storage temperature breach', 'Medium', 'Aug 8, 2026', 'Expired', '93'],
+];
+
+export const communityReports = [
+  ['#CI-1256', 'Receipt scanner incorrectly identified Amul Taaza as Amul Gold.', 'Receipt Scanning Issue', 'Priya Deshmukh', 'High', 'Open', 'Aug 14, 2026', '10:32 AM'],
+  ['#CI-1255', 'The price of Britannia Milk Bikis is showing incorrect.', 'Incorrect Price', 'Rohan Verma', 'Medium', 'In Progress', 'Aug 14, 2026', '09:15 AM'],
+  ['#CI-1254', 'Pantry expiry date is not updating automatically.', 'App Bug / Glitch', 'Sneha Iyer', 'Medium', 'Open', 'Aug 13, 2026', '08:47 AM'],
+  ['#CI-1253', 'AI suggested overpriced alternatives. Not helpful.', 'AI Recommendation Issue', 'Ajay Kumar', 'Low', 'In Progress', 'Aug 13, 2026', '07:22 AM'],
+];
