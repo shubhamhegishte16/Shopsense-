@@ -1,6 +1,6 @@
-﻿const express = require("express");
+const express = require("express");
 const router = express.Router();
-const { signup, login, getMe } = require("../controllers/authController");
+const { signup, login, getMe, adminLogin } = require("../controllers/authController");
 const { protect } = require("../middleware/auth");
 
 // @route  POST /api/auth/signup
@@ -12,6 +12,11 @@ router.post("/signup", signup);
 // @desc   Login user and return JWT
 // @access Public
 router.post("/login", login);
+
+// @route  POST /api/auth/admin-login
+// @desc   Login admin and return JWT
+// @access Public
+router.post("/admin-login", adminLogin);
 
 // @route  GET /api/auth/me
 // @desc   Get current logged-in user

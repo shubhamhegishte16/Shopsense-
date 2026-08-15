@@ -33,6 +33,22 @@ const protect = async (req, res, next) => {
       });
     }
 
+    if (user.accountStatus === "suspended") {
+      return res.status(403).json({
+        success: false,
+        message: user.suspensionReason
+          ? "Your account has been suspended. Reason: " + user.suspensionReason
+          : "Your account has been suspended. Please contact support.",
+      });
+    }
+
+    if (user.accountStatus === "deleted") {
+      return res.status(403).json({
+        success: false,
+        message: "This account is no longer active.",
+      });
+    }
+
     req.user = user;
     next();
   } catch (error) {
@@ -57,3 +73,4 @@ const restrictTo = (...roles) => {
 };
 
 module.exports = { protect, restrictTo };
+

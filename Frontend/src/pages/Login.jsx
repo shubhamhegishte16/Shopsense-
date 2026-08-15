@@ -65,7 +65,11 @@ export default function Login() {
       localStorage.setItem('shopsense_token', data.token)
       localStorage.setItem('shopsense_user', JSON.stringify(data.user))
 
-      navigate('/dashboard')
+      if (data.user.role === 'admin') {
+        navigate('/admin')
+      } else {
+        navigate('/dashboard')
+      }
     } catch (err) {
       setError('Network error. Please check your connection and try again.')
     } finally {

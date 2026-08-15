@@ -29,6 +29,25 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+    accountStatus: {
+      type: String,
+      enum: ["active", "suspended", "deleted"],
+      default: "active",
+    },
+    suspendedAt: {
+      type: Date,
+      default: null,
+    },
+    suspendedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    suspensionReason: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     isVerified: {
       type: Boolean,
       default: false,
