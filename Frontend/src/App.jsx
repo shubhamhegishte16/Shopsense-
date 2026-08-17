@@ -10,8 +10,10 @@ import Compare from './pages/user/Compare'
 import Pantry from './pages/user/Pantry'
 import Insights from './pages/user/Insights'
 import ChatAI from './pages/user/ChatAI'
+import Community from './pages/user/Community'
 import Profile from './pages/user/Profile'
 import Settings from './pages/user/Settings'
+import Notifications from './pages/user/Notifications'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminLogin from './pages/admin/AdminLogin'
 import UserManagement from './pages/admin/UserManagement'
@@ -19,6 +21,10 @@ import ReceiptManagement from './pages/admin/ReceiptManagement'
 import ProductDatabase from './pages/admin/ProductDatabase'
 import FoodRecallManagement from './pages/admin/FoodRecallManagement'
 import CommunityInsights from './pages/admin/CommunityInsights'
+import NotificationManagement from './pages/admin/NotificationManagement'
+import ReportsAnalytics from './pages/admin/ReportsAnalytics'
+import AdminSettings from './pages/admin/AdminSettings'
+import AdminProfile from './pages/admin/AdminProfile'
 
 export default function App() {
   return (
@@ -35,7 +41,9 @@ export default function App() {
           <Route path="/pantry" element={<Pantry />} />
           <Route path="/insights" element={<Insights />} />
           <Route path="/chat" element={<ChatAI />} />
+          <Route path="/community" element={<Community />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/:section" element={<Settings />} />
           <Route path="/admin" element={<AdminDashboard />} />
@@ -45,6 +53,10 @@ export default function App() {
           <Route path="/admin/products" element={<ProductDatabase />} />
           <Route path="/admin/recalls" element={<FoodRecallManagement />} />
           <Route path="/admin/community" element={<CommunityInsights />} />
+          <Route path="/admin/notifications" element={<NotificationManagement />} />
+          <Route path="/admin/reports" element={<ReportsAnalytics />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
+          <Route path="/admin/profile" element={<AdminProfile />} />
         </Routes>
       </Router>
     </ThemeProvider>
