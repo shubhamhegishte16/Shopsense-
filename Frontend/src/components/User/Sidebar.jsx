@@ -9,7 +9,9 @@ import {
   Package, 
   PieChart, 
   MessageSquare, 
+  UsersRound,
   Crown,
+  Bell,
   ChevronRight,
   User,
   Settings,
@@ -27,6 +29,8 @@ const navItems = [
   { id: 'pantry',    label: 'Pantry',    icon: Package,       path: '/pantry' },
   { id: 'insights',  label: 'Insights',  icon: PieChart,      path: '/insights' },
   { id: 'chat',      label: 'Chat AI',   icon: MessageSquare, path: '/chat' },
+  { id: 'community', label: 'Community', icon: UsersRound,    path: '/community' },
+  { id: 'notifications', label: 'Notifications', icon: Bell, path: '/notifications' },
   { id: 'profile',   label: 'Profile',   icon: User,          path: '/profile' },
   { id: 'settings',  label: 'Settings',  icon: Settings,      path: '/settings' },
 ];
@@ -37,6 +41,7 @@ const mobileNavItems = [
   { id: 'receipts',  label: 'Receipts', icon: ReceiptText,  path: '/receipts' },
   { id: 'pantry',    label: 'Pantry',   icon: Package,       path: '/pantry' },
   { id: 'insights',  label: 'Insights', icon: PieChart,      path: '/insights' },
+  { id: 'community', label: 'Community', icon: UsersRound,    path: '/community' },
   { id: 'chat',      label: 'Chat',     icon: MessageSquare, path: '/chat' },
 ];
 
