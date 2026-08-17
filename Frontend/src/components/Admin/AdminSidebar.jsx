@@ -10,6 +10,7 @@ import {
   Home,
   LogOut,
   Menu,
+  User,
   Settings,
   ShieldCheck,
   Users,
@@ -24,7 +25,10 @@ const navItems = [
   { id: 'products', label: 'Product Database', icon: Boxes, path: '/admin/products' },
   { id: 'recalls', label: 'Food Recalls', icon: Flag, path: '/admin/recalls' },
   { id: 'community', label: 'Community Insights', icon: BarChart3, path: '/admin/community' },
+  { id: 'notifications', label: 'Notifications', icon: Bell, path: '/admin/notifications' },
+  { id: 'reports', label: 'Reports & Analytics', icon: BarChart3, path: '/admin/reports' },
   { id: 'settings', label: 'Settings', icon: Settings, path: '/admin/settings' },
+  { id: 'profile', label: 'Profile', icon: User, path: '/admin/profile' },
 ];
 
 const mobileNavItems = navItems.slice(0, 4);
@@ -134,14 +138,14 @@ export default function AdminSidebar() {
         ))}
       </nav>
       <div className="admin-sidebar-footer">
-        <button className="admin-sidebar-user" type="button">
+        <Link className="admin-sidebar-user" to="/admin/profile">
           <span className="admin-sidebar-avatar">A</span>
           <span>
             <strong>Admin</strong>
             <small>ops@shopsense.ai</small>
           </span>
           <ChevronRight size={17} />
-        </button>
+        </Link>
         <div className="admin-sidebar-actions">
           <button className="admin-icon-btn" type="button" aria-label="Notifications"><Bell size={18} /></button>
           <button className="admin-icon-btn" type="button" aria-label="Log out"><LogOut size={18} /></button>

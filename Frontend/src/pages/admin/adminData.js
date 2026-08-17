@@ -41,3 +41,12 @@ export const communityReports = [
   ['#CI-1254', 'Pantry expiry date is not updating automatically.', 'App Bug / Glitch', 'Sneha Iyer', 'Medium', 'Open', 'Aug 13, 2026', '08:47 AM'],
   ['#CI-1253', 'AI suggested overpriced alternatives. Not helpful.', 'AI Recommendation Issue', 'Ajay Kumar', 'Low', 'In Progress', 'Aug 13, 2026', '07:22 AM'],
 ];
+
+export const notifications = [
+  ['NTF-1842', 'Food Recall Alert', 'Amul Taaza Toned Milk 1L', 'recall', 'All Users', '12,532 users', 'High', 'Sent', 'Aug 14, 2026', '10:30 AM', 'Aug 14, 2026 10:31 AM', 'Admin', 'We have detected that Amul Taaza Toned Milk 1L (Batch B2408) has been recalled due to possible contamination. If you have purchased this product, please stop using it and stay safe.', 'Recall_Details_Amul_Milk.pdf', '215 KB'],
+  ['NTF-1841', 'Receipt Processing Failed', "We couldn't process your receipt", 'system', 'All Users', '-', 'Medium', 'Sent', 'Aug 14, 2026', '09:15 AM', 'Aug 14, 2026 09:15 AM', 'System', 'A receipt could not be processed because the uploaded image was unclear. Please upload a sharper image with the full receipt visible.', '', ''],
+  ['NTF-1840', 'New Feature: Pantry Advisor', 'Smart suggestions for your pantry', 'feature', 'All Users', '12,532 users', 'Medium', 'Sent', 'Aug 13, 2026', '06:40 PM', 'Aug 13, 2026 06:42 PM', 'Admin', 'Pantry Advisor is now live with smart expiry reminders, restock prompts, and shopping suggestions based on your recent receipts.', '', ''],
+  ['NTF-1839', 'Scheduled Maintenance', 'ShopSense will be briefly unavailable', 'system', 'Premium Users', '1,284 users', 'Low', 'Scheduled', 'Aug 15, 2026', '01:00 AM', 'Aug 15, 2026 01:00 AM', 'Ops Team', 'We will perform maintenance to improve platform reliability. The app may be unavailable for up to 20 minutes.', '', ''],
+  ['NTF-1838', 'Weekly Savings Summary', 'Your savings report is ready', 'admin_note', 'Active Users', '8,410 users', 'Low', 'Draft', 'Aug 12, 2026', '05:25 PM', '-', 'Admin', 'Your weekly savings summary is ready. Open Insights to review top deals, missed savings, and smarter shopping suggestions.', '', ''],
+  ['NTF-1837', 'Offer Push Failed', 'Discount alert delivery issue', 'system', 'Segment: Offers', '3,906 users', 'Medium', 'Failed', 'Aug 11, 2026', '02:10 PM', '-', 'System', 'The promotion alert could not be delivered to a subset of users because the push provider rejected the request.', '', ''],
+];
