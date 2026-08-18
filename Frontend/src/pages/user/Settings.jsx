@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Sidebar from '../../components/User/Sidebar';
 import TopNav from '../../components/User/TopNav';
 import { useTheme } from '../../hooks/useTheme';
+import useWindowWidth, { isMobile } from '../../hooks/useWindowWidth';
 import { motion } from 'framer-motion';
 import {
   Settings as SettingsIcon, Globe, Moon, DollarSign, Calendar,
@@ -82,13 +83,15 @@ function Toggle({ value, onChange }) {
 
 function SelectRow({ label, sub, options, value, onChange }) {
   const [open, setOpen] = useState(false);
+  const width = useWindowWidth();
+  const mobile = isMobile(width);
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px', background: '#FFF', borderRadius: 14, border: '1px solid #F1F5F9', position: 'relative' }}>
+    <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', alignItems: mobile ? 'stretch' : 'center', justifyContent: 'space-between', padding: '18px 20px', background: '#FFF', borderRadius: 14, border: '1px solid #F1F5F9', position: 'relative', gap: mobile ? 12 : 0 }}>
       <div>
         <div style={{ fontSize: 14, fontWeight: 600, color: '#0F172A', marginBottom: 3 }}>{label}</div>
         <div style={{ fontSize: 12, color: '#94A3B8' }}>{sub}</div>
       </div>
-      <div onClick={() => setOpen(!open)} style={{ display: 'flex', alignItems: 'center', gap: 6, border: '1px solid #E2E8F0', borderRadius: 10, padding: '7px 12px', background: '#FAFCFC', cursor: 'pointer', minWidth: 130, justifyContent: 'space-between', position: 'relative' }}>
+      <div onClick={() => setOpen(!open)} style={{ display: 'flex', alignItems: 'center', gap: 6, border: '1px solid #E2E8F0', borderRadius: 10, padding: '7px 12px', background: '#FAFCFC', cursor: 'pointer', minWidth: mobile ? '100%' : 130, justifyContent: 'space-between', position: 'relative' }}>
         <span style={{ fontSize: 13, fontWeight: 600, color: '#334155' }}>{value}</span>
         <ChevronDown size={13} color="#94A3B8" />
         {open && (
@@ -140,6 +143,8 @@ function SectionHeader({ title, sub }) {
 function GeneralSection() {
   const { settings, reload } = useSettings();
   const { setTheme: applyGlobalTheme } = useTheme();
+  const width = useWindowWidth();
+  const mobile = isMobile(width);
   const g = settings?.general || {};
 
   const [local, setLocal] = useState({
@@ -186,13 +191,13 @@ function GeneralSection() {
       <SectionHeader title="General Settings" />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 32 }}>
         <SelectRow label="Language" sub="Choose your preferred language" options={['English', 'Hindi', 'Marathi', 'Tamil']} value={local.language} onChange={v => set('language', v)} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '18px 20px', background: '#FFF', borderRadius: 14, border: '1px solid #F1F5F9' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '18px 20px', background: '#FFF', borderRadius: 14, border: '1px solid #F1F5F9', flexWrap: 'wrap' }}>
           <Moon size={18} color="#8B5CF6" />
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: '#0F172A', marginBottom: 2 }}>Theme</div>
             <div style={{ fontSize: 12, color: '#94A3B8' }}>Choose your app appearance</div>
           </div>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {themes.map(t => (
               <button key={t} onClick={() => set('theme', t)} style={{ padding: '7px 14px', borderRadius: 8, border: local.theme === t ? '2px solid #154539' : '1px solid #E2E8F0', background: local.theme === t ? '#F0FDF4' : '#FAFCFC', color: local.theme === t ? '#154539' : '#64748B', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
                 {local.theme === t && <Check size={11} />} {t}
@@ -226,13 +231,13 @@ function GeneralSection() {
       </div>
 
       <SectionHeader title="Default Units" sub="Set your default units for measurements" />
-      <div style={{ display: 'flex', gap: 16, marginBottom: 8 }}>
+      <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', gap: 16, marginBottom: 8 }}>
         {[
           { k: 'weightUnit', label: 'WEIGHT', icon: '⚖️', options: ['Kilogram (kg)', 'Pound (lb)', 'Gram (g)'] },
           { k: 'volumeUnit', label: 'VOLUME', icon: '🧴', options: ['Liter (L)', 'Milliliter (ml)', 'Fluid oz'] },
           { k: 'distanceUnit', label: 'DISTANCE', icon: '📏', options: ['Kilometer (km)', 'Mile (mi)', 'Meter (m)'] },
         ].map(u => (
-          <div key={u.k} style={{ flex: 1, border: '1px solid #E2E8F0', borderRadius: 12, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', background: '#FAFCFC', position: 'relative' }}>
+          <div key={u.k} style={{ flex: 1, border: '1px solid #E2E8F0', borderRadius: 12, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', background: '#FAFCFC', position: 'relative', width: mobile ? '100%' : 'auto' }}>
             <span style={{ fontSize: 18 }}>{u.icon}</span>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 700, letterSpacing: 0.5 }}>{u.label}</div>

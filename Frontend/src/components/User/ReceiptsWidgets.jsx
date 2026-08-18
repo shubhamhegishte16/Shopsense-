@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Upload, ChevronDown, MoreVertical, Loader2, Check, AlertCircle, RefreshCw, Trash2 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import useWindowWidth, { isMobile } from '../../hooks/useWindowWidth';
 
 const API_BASE = 'http://localhost:5000/api';
 
@@ -10,9 +11,11 @@ function getAuthHeaders() {
 }
 
 export function ReceiptsHeader() {
+  const width = useWindowWidth();
+  const mobile = isMobile(width);
   return (
-    <div style={{ marginBottom: 24 }}>
-      <h1 style={{ fontSize: 24, fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
+    <div style={{ marginBottom: mobile ? 14 : 24, maxWidth: '100%' }}>
+      <h1 style={{ fontSize: mobile ? 21 : 24, fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4, flexWrap: 'wrap' }}>
         My Receipts 
         <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#E8F5E9', width: 24, height: 24, borderRadius: 6 }}>
           <ReceiptIcon size={14} color="#154539" />
@@ -74,11 +77,12 @@ export function UploadZone({ onUploadSuccess }) {
         background: '#FFFFFF',
         padding: '24px 32px',
         display: 'flex',
-        alignItems: 'center',
+        flexDirection: 'column',
+        alignItems: 'stretch',
         justifyContent: 'space-between',
         boxShadow: '0 2px 10px rgba(0,0,0,0.02)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
           <div style={{
             width: 64,
             height: 64,
@@ -126,7 +130,10 @@ export function UploadZone({ onUploadSuccess }) {
             gap: 8,
             cursor: isUploading ? 'not-allowed' : 'pointer',
             opacity: isUploading ? 0.7 : 1,
-            transition: 'background 0.3s'
+            transition: 'background 0.3s',
+            alignSelf: 'flex-end',
+            marginTop: 16,
+            maxWidth: '100%'
           }}
         >
           {isUploading ? (

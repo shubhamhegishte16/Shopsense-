@@ -33,11 +33,11 @@ export default function TopNav({ showReceiptFilters = false, titleNode }) {
       alignItems: 'center',
       justifyContent: 'space-between',
       padding: mobile ? '14px 16px' : '32px 40px 24px',
-      background: '#FAFCFC',
+      background: '#FBF6EE',
       position: 'sticky',
       top: 0,
       zIndex: 10,
-      borderBottom: mobile ? '1px solid #F1F5F9' : 'none',
+      borderBottom: mobile ? '1px solid rgba(21, 69, 57, 0.06)' : 'none',
       width: '100%',
       boxSizing: 'border-box'
     }}>

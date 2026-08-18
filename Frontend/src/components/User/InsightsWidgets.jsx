@@ -10,6 +10,7 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
   BarChart, Bar, Cell, PieChart as RechartsPie, Pie
 } from 'recharts';
+import useWindowWidth, { isMobile } from '../../hooks/useWindowWidth';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -70,10 +71,12 @@ const getIcon = (iconName, DefaultIcon = Star) => {
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
 export function InsightsHeader() {
+  const width = useWindowWidth();
+  const mobile = isMobile(width);
   return (
-    <div style={{ marginBottom: 24 }}>
+    <div style={{ marginBottom: mobile ? 12 : 24 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-        <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.5px' }}>Insights</h1>
+        <h1 style={{ fontSize: mobile ? 22 : 26, fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.5px' }}>Insights</h1>
         <Sparkles size={20} color="#F59E0B" />
       </div>
       <p style={{ fontSize: 14, color: '#64748B', margin: 0 }}>
@@ -84,8 +87,10 @@ export function InsightsHeader() {
 }
 
 export function InsightsActionBar() {
+  const width = useWindowWidth();
+  const mobile = isMobile(width);
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, marginBottom: 28 }}>
+    <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', alignItems: mobile ? 'stretch' : 'center', justifyContent: 'flex-end', gap: 12, marginBottom: 28, width: mobile ? '100%' : 'auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1px solid #E2E8F0', borderRadius: 10, padding: '8px 14px', fontSize: 13, fontWeight: 600, color: '#334155', background: '#FFFFFF', cursor: 'pointer' }}>
         <Calendar size={14} color="#64748B" />
         This Month
@@ -100,9 +105,11 @@ export function InsightsActionBar() {
 }
 
 export function InsightStatCards({ stats = [] }) {
+  const width = useWindowWidth();
+  const mobile = isMobile(width);
   if (!stats.length) return null;
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16, marginBottom: 28 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(5, 1fr)', gap: 16, marginBottom: 28 }}>
       {stats.map((s, i) => {
         // Find icon based on label just for mapping the dynamically sent data
         let CardIcon = Star;
@@ -131,12 +138,14 @@ export function InsightStatCards({ stats = [] }) {
 }
 
 export function SpendingTrendPanel({ data = [] }) {
+  const width = useWindowWidth();
+  const mobile = isMobile(width);
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
       style={{ background: '#FFFFFF', borderRadius: 20, padding: '24px 28px', border: '1px solid #F1F5F9', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', marginBottom: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+      <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: mobile ? 'stretch' : 'center', marginBottom: 8, gap: mobile ? 12 : 0 }}>
         <div style={{ fontSize: 16, fontWeight: 700, color: '#0F172A' }}>Spending Trend</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 11, color: '#64748B', fontWeight: 600 }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ display: 'inline-block', width: 16, height: 2, background: '#154539', borderRadius: 2 }} /> THIS MONTH</span>
             <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ display: 'inline-block', width: 16, height: 2, background: '#CBD5E1', borderRadius: 2 }} /> LAST MONTH</span>
@@ -170,6 +179,8 @@ export function SpendingTrendPanel({ data = [] }) {
 }
 
 export function SpendingByCategoryPanel({ data = [], totalSpent = 0 }) {
+  const width = useWindowWidth();
+  const mobile = isMobile(width);
   if (!data.length) return null;
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
@@ -180,8 +191,8 @@ export function SpendingByCategoryPanel({ data = [], totalSpent = 0 }) {
           This Month <ChevronDown size={12} />
         </button>
       </div>
-      <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
-        <div style={{ position: 'relative', width: 180, height: 180, flexShrink: 0 }}>
+      <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', gap: 24, alignItems: mobile ? 'stretch' : 'center' }}>
+        <div style={{ position: 'relative', width: mobile ? '100%' : 180, height: mobile ? 220 : 180, flexShrink: 0 }}>
           <RechartsPie width={180} height={180}>
             <Pie data={data} cx={85} cy={85} innerRadius={55} outerRadius={82} dataKey="value" startAngle={90} endAngle={-270} strokeWidth={0}>
               {data.map((entry, index) => (
@@ -251,13 +262,15 @@ export function TopCategoriesPanel({ data = [] }) {
 }
 
 export function MonthlyComparisonPanel({ data = [], thisMonthTotal = 0, lastMonthTotal = 0 }) {
+  const width = useWindowWidth();
+  const mobile = isMobile(width);
   if (!data.length) return null;
   const pctChange = lastMonthTotal ? Math.round(((thisMonthTotal - lastMonthTotal) / lastMonthTotal) * 100) : 0;
   
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
       style={{ background: '#FFFFFF', borderRadius: 20, padding: '24px 28px', border: '1px solid #F1F5F9', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: mobile ? 'stretch' : 'center', marginBottom: 16, gap: mobile ? 12 : 0 }}>
         <div style={{ fontSize: 16, fontWeight: 700, color: '#0F172A' }}>Monthly Comparison</div>
         <button style={{ display: 'flex', alignItems: 'center', gap: 4, border: '1px solid #E2E8F0', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 600, color: '#334155', background: '#FFF', cursor: 'pointer' }}>
           This Month <ChevronDown size={12} />
@@ -292,6 +305,8 @@ export function MonthlyComparisonPanel({ data = [], thisMonthTotal = 0, lastMont
 }
 
 export function InsightsForYouPanel({ data = [] }) {
+  const width = useWindowWidth();
+  const mobile = isMobile(width);
   if (!data.length) return null;
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
@@ -302,7 +317,7 @@ export function InsightsForYouPanel({ data = [] }) {
           const InsIcon = getIcon(ins.iconName, Zap);
           return (
             <div key={i}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderRadius: 14, border: '1px solid #F1F5F9', cursor: 'pointer', transition: 'background 0.2s' }}
+              style={{ display: 'flex', alignItems: mobile ? 'flex-start' : 'center', justifyContent: 'space-between', padding: '14px 16px', borderRadius: 14, border: '1px solid #F1F5F9', cursor: 'pointer', transition: 'background 0.2s', gap: 12 }}
               onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >

@@ -3,6 +3,7 @@ import axios from 'axios';
 import Sidebar from '../../components/User/Sidebar';
 import TopNav from '../../components/User/TopNav';
 import { motion, AnimatePresence } from 'framer-motion';
+import useWindowWidth, { isMobile } from '../../hooks/useWindowWidth';
 import {
   Mail, Phone, MapPin, Camera, Star, ReceiptText,
   TrendingUp, Package, ChevronRight, Download, CreditCard,
@@ -53,6 +54,8 @@ function Field({ label, name, value, onChange, disabled, placeholder, type = 'te
 
 // ─── Personal Info Tab ────────────────────────────────────────────────────────
 function PersonalInfoTab({ user, onUpdateUser }) {
+  const width = useWindowWidth();
+  const mobile = isMobile(width);
   const [form, setForm] = useState({ fullName: '', phone: '', location: '', dateOfBirth: '', gender: '', bio: '' });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -88,7 +91,7 @@ function PersonalInfoTab({ user, onUpdateUser }) {
   return (
     <div>
       <h2 style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', marginBottom: 24 }}>Personal Information</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: 20 }}>
         <Field label="Full Name" name="fullName" value={form.fullName} onChange={handleChange} />
         <Field label="Email Address" value={user?.email || ''} disabled />
         <Field label="Phone Number" name="phone" value={form.phone} onChange={handleChange} placeholder="+91 XXXXXXXXXX" />
@@ -136,6 +139,8 @@ function PersonalInfoTab({ user, onUpdateUser }) {
 
 // ─── Preferences Tab ──────────────────────────────────────────────────────────
 function PreferencesTab({ user, onUpdateUser }) {
+  const width = useWindowWidth();
+  const mobile = isMobile(width);
   const prefs = user?.preferences || {};
   const [saving, setSaving] = useState(null); // key being saved
 
@@ -195,7 +200,7 @@ function PreferencesTab({ user, onUpdateUser }) {
       </div>
 
       <h2 style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', marginBottom: 20 }}>Shopping Settings</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3, 1fr)', gap: 16 }}>
         {/* Currency */}
         <div style={{ background: '#F8FAFC', borderRadius: 14, padding: '16px 18px', border: '1px solid #F1F5F9' }}>
           <div style={{ fontSize: 20, marginBottom: 8 }}>💱</div>
@@ -418,6 +423,8 @@ function ProfileRightPanel() {
 
 // ─── Main Profile Page ────────────────────────────────────────────────────────
 export default function Profile() {
+  const width = useWindowWidth();
+  const mobile = isMobile(width);
   const [activeTab, setActiveTab] = useState('personal');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -472,7 +479,7 @@ export default function Profile() {
     return (
       <div className="page-wrapper">
         <div className="sidebar-wrapper"><Sidebar /></div>
-        <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#FBF6EE' }}>
           <div style={{ color: '#64748B', fontWeight: 600 }}>Loading Profile...</div>
         </main>
       </div>
@@ -498,8 +505,8 @@ export default function Profile() {
             <div style={{ flex: 1, minWidth: 0 }}>
 
               {/* Profile Card */}
-              <div style={{ background: '#FFF', borderRadius: 20, padding: '28px', border: '1px solid #F1F5F9', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+              <div style={{ background: '#FFF', borderRadius: 20, padding: '28px', border: '1px solid #F1F5F9', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', marginBottom: 24, display: 'flex', flexDirection: mobile ? 'column' : 'row', alignItems: mobile ? 'stretch' : 'center', justifyContent: 'space-between', gap: 24 }}>
+                <div style={{ display: 'flex', alignItems: mobile ? 'flex-start' : 'center', gap: 20, flexWrap: 'wrap' }}>
                   {/* Avatar */}
                   <div style={{ position: 'relative' }}>
                     <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#E2E8F0', overflow: 'hidden', border: '3px solid #F0FDF4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -540,7 +547,7 @@ export default function Profile() {
                     {user?.bio && <p style={{ fontSize: 13, color: '#64748B', margin: '8px 0 0', fontStyle: 'italic' }}>{user.bio}</p>}
                   </div>
                 </div>
-                <div style={{ textAlign: 'center', flexShrink: 0 }}>
+                <div style={{ textAlign: mobile ? 'left' : 'center', flexShrink: 0 }}>
                   <div style={{ fontSize: 11, color: '#94A3B8', fontWeight: 600, marginBottom: 10 }}>Member Since</div>
                   <div style={{ fontSize: 16, fontWeight: 800, color: '#0F172A' }}>{user?.createdAt ? new Date(user.createdAt).getFullYear() : '—'}</div>
                   <div style={{ fontSize: 12, color: '#10B981', fontWeight: 600, marginTop: 4 }}>Active Account</div>
@@ -548,7 +555,7 @@ export default function Profile() {
               </div>
 
               {/* Tabs */}
-              <div style={{ display: 'flex', gap: 4, background: '#F8FAFC', borderRadius: 14, padding: 6, marginBottom: 28, border: '1px solid #F1F5F9' }}>
+              <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', gap: 4, background: '#F8FAFC', borderRadius: 14, padding: 6, marginBottom: 28, border: '1px solid #F1F5F9' }}>
                 {tabs.map(tab => (
                   <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
                     flex: 1, padding: '10px 8px', borderRadius: 10, border: 'none', cursor: 'pointer',

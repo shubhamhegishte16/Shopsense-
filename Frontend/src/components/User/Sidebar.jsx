@@ -1,112 +1,129 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ShoppingBag, 
-  Home, 
-  ReceiptText, 
-  Zap, 
-  BarChart2, 
-  Package, 
-  PieChart, 
-  MessageSquare, 
-  UsersRound,
-  Crown,
+import {
+  BarChart2,
   Bell,
   ChevronRight,
-  User,
-  Settings,
+  Home,
   Menu,
-  X
+  MessageSquare,
+  Package,
+  PieChart,
+  ReceiptText,
+  Settings,
+  User,
+  UsersRound,
+  X,
+  Zap,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import useWindowWidth, { isMobile, isTablet } from '../../hooks/useWindowWidth';
 
 const navItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: Home,          path: '/dashboard' },
-  { id: 'receipts',  label: 'Receipts',  icon: ReceiptText,  path: '/receipts' },
-  { id: 'optimizer', label: 'Optimizer', icon: Zap,           path: '/optimizer' },
-  { id: 'compare',   label: 'Compare',   icon: BarChart2,     path: '/compare' },
-  { id: 'pantry',    label: 'Pantry',    icon: Package,       path: '/pantry' },
-  { id: 'insights',  label: 'Insights',  icon: PieChart,      path: '/insights' },
-  { id: 'chat',      label: 'Chat AI',   icon: MessageSquare, path: '/chat' },
-  { id: 'community', label: 'Community', icon: UsersRound,    path: '/community' },
+  { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/dashboard' },
+  { id: 'receipts', label: 'Receipts', icon: ReceiptText, path: '/receipts' },
+  { id: 'optimizer', label: 'Optimizer', icon: Zap, path: '/optimizer' },
+  { id: 'compare', label: 'Compare', icon: BarChart2, path: '/compare' },
+  { id: 'pantry', label: 'Pantry', icon: Package, path: '/pantry' },
+  { id: 'insights', label: 'Insights', icon: PieChart, path: '/insights' },
+  { id: 'chat', label: 'Chat AI', icon: MessageSquare, path: '/chat' },
+  { id: 'community', label: 'Community', icon: UsersRound, path: '/community' },
   { id: 'notifications', label: 'Notifications', icon: Bell, path: '/notifications' },
-  { id: 'profile',   label: 'Profile',   icon: User,          path: '/profile' },
-  { id: 'settings',  label: 'Settings',  icon: Settings,      path: '/settings' },
+  { id: 'profile', label: 'Profile', icon: User, path: '/profile' },
+  { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
 ];
 
-// Items shown in the mobile bottom bar (most important ones)
 const mobileNavItems = [
-  { id: 'dashboard', label: 'Home',     icon: Home,          path: '/dashboard' },
-  { id: 'receipts',  label: 'Receipts', icon: ReceiptText,  path: '/receipts' },
-  { id: 'pantry',    label: 'Pantry',   icon: Package,       path: '/pantry' },
-  { id: 'insights',  label: 'Insights', icon: PieChart,      path: '/insights' },
-  { id: 'community', label: 'Community', icon: UsersRound,    path: '/community' },
-  { id: 'chat',      label: 'Chat',     icon: MessageSquare, path: '/chat' },
+  { id: 'dashboard', label: 'Home', icon: Home, path: '/dashboard' },
+  { id: 'receipts', label: 'Receipt', icon: ReceiptText, path: '/receipts' },
+  { id: 'pantry', label: 'Pantry', icon: Package, path: '/pantry' },
+  { id: 'insights', label: 'Insights', icon: PieChart, path: '/insights' },
 ];
+
+function NavItem({ item, currentPath, compact = false, onClick }) {
+  const Icon = item.icon;
+  const isActive = currentPath === item.path || (item.path !== '/dashboard' && currentPath.startsWith(item.path));
+
+  return (
+    <Link className="user-sidebar-link" to={item.path} title={item.label} onClick={onClick}>
+      <span className={`user-sidebar-item ${isActive ? 'is-active' : ''} ${compact ? 'is-compact' : ''}`}>
+        <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+        {!compact && <span>{item.label}</span>}
+      </span>
+    </Link>
+  );
+}
 
 export default function Sidebar() {
-  const location   = useLocation();
-  const currentPath = location.pathname;
-  const width      = useWindowWidth();
-  const mobile     = isMobile(width);
-  const tablet     = isTablet(width);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { pathname } = useLocation();
+  const width = useWindowWidth();
+  const mobile = isMobile(width);
+  const tablet = isTablet(width);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // ─── Mobile: bottom nav bar + optional drawer ─────────────────────────────
   if (mobile) {
     return (
       <>
-        {/* Bottom Navigation Bar */}
-        <nav className="mobile-bottom-nav">
-          {mobileNavItems.map(item => {
-            const isActive = currentPath === item.path || (item.path !== '/' && currentPath.startsWith(item.path));
+        <nav className="user-mobile-nav">
+          {mobileNavItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.path || (item.path !== '/dashboard' && pathname.startsWith(item.path));
             return (
-              <Link key={item.id} to={item.path} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, flex: 1, padding: '6px 0' }}>
-                <item.icon size={22} color={isActive ? '#154539' : '#94A3B8'} strokeWidth={isActive ? 2.5 : 1.75} />
-                <span style={{ fontSize: 10, fontWeight: isActive ? 700 : 500, color: isActive ? '#154539' : '#94A3B8' }}>{item.label}</span>
+              <Link key={item.id} to={item.path} className={`user-mobile-nav-item ${isActive ? 'is-active' : ''}`}>
+                <Icon size={21} strokeWidth={isActive ? 2.5 : 2} />
+                <span>{item.label}</span>
               </Link>
             );
           })}
-          {/* More button to open full menu */}
-          <button onClick={() => setMobileMenuOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, flex: 1, padding: '6px 0', background: 'none', border: 'none', cursor: 'pointer' }}>
-            <Menu size={22} color="#94A3B8" strokeWidth={1.75} />
-            <span style={{ fontSize: 10, fontWeight: 500, color: '#94A3B8' }}>More</span>
+          <button className="user-mobile-nav-item" type="button" onClick={() => setDrawerOpen(true)}>
+            <Menu size={21} />
+            <span>More</span>
           </button>
         </nav>
 
-        {/* Full-screen drawer for all nav items */}
         <AnimatePresence>
-          {mobileMenuOpen && (
+          {drawerOpen && (
             <>
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                onClick={() => setMobileMenuOpen(false)}
-                style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 200 }} />
-              <motion.div initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }} transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                style={{ position: 'fixed', top: 0, left: 0, bottom: 0, width: 280, background: '#FFF', zIndex: 201, display: 'flex', flexDirection: 'column', padding: '24px 0', fontFamily: "'Inter', sans-serif" }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', marginBottom: 32 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <img src="/Shopsense logo.png" alt="ShopSense AI" style={{ height: 32, objectFit: 'contain' }} />
-                    <div style={{ fontSize: 16, fontWeight: 800, color: '#0F172A' }}>ShopSense<span style={{ color: '#10B981' }}> AI</span></div>
+              <motion.button
+                className="user-drawer-scrim"
+                type="button"
+                aria-label="Close user menu"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setDrawerOpen(false)}
+              />
+              <motion.aside
+                className="user-sidebar user-sidebar-drawer"
+                initial={{ x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '-100%' }}
+                transition={{ type: 'spring', damping: 30, stiffness: 320 }}
+              >
+                <div className="user-sidebar-brand">
+                  <img src="/Shopsense logo.png" alt="ShopSense AI" />
+                  <div>
+                    <strong>ShopSense</strong>
+                    <span>AI User Panel</span>
                   </div>
-                  <button onClick={() => setMobileMenuOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
-                    <X size={22} color="#64748B" />
+                  <button className="user-icon-btn user-sidebar-close" type="button" onClick={() => setDrawerOpen(false)}>
+                    <X size={18} />
                   </button>
                 </div>
-                <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, padding: '0 12px', overflowY: 'auto' }}>
-                  {navItems.map(item => {
-                    const isActive = currentPath === item.path || (item.path !== '/' && currentPath.startsWith(item.path));
-                    return (
-                      <Link key={item.id} to={item.path} style={{ textDecoration: 'none' }} onClick={() => setMobileMenuOpen(false)}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', borderRadius: 12, background: isActive ? '#F0FDF4' : 'transparent', color: isActive ? '#154539' : '#64748B', fontWeight: isActive ? 600 : 500 }}>
-                          <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-                          <span style={{ fontSize: 15 }}>{item.label}</span>
-                        </div>
-                      </Link>
-                    );
-                  })}
+                <nav className="user-sidebar-nav">
+                  {navItems.map((item) => (
+                    <NavItem key={item.id} item={item} currentPath={pathname} onClick={() => setDrawerOpen(false)} />
+                  ))}
                 </nav>
-              </motion.div>
+                <Link className="user-sidebar-user" to="/profile" onClick={() => setDrawerOpen(false)}>
+                  <span className="user-sidebar-avatar">S</span>
+                  <span>
+                    <strong>Shubham H.</strong>
+                    <small>Free User</small>
+                  </span>
+                  <ChevronRight size={17} />
+                </Link>
+              </motion.aside>
             </>
           )}
         </AnimatePresence>
@@ -114,78 +131,58 @@ export default function Sidebar() {
     );
   }
 
-  // ─── Tablet: icon-only rail ───────────────────────────────────────────────
   if (tablet) {
     return (
-      <div style={{ width: 68, height: '100vh', background: '#FFFFFF', borderRight: '1px solid #F1F5F9', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '28px 0', position: 'sticky', top: 0, flexShrink: 0 }}>
-        <Link to="/dashboard" style={{ marginBottom: 32 }}>
-          <img src="/Shopsense logo.png" alt="ShopSense AI" style={{ height: 30, objectFit: 'contain' }} />
+      <aside className="user-sidebar user-sidebar-rail">
+        <Link to="/dashboard" className="user-sidebar-logo">
+          <img src="/Shopsense logo.png" alt="ShopSense AI" />
         </Link>
-        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, width: '100%', padding: '0 8px' }}>
-          {navItems.map(item => {
-            const isActive = currentPath === item.path || (item.path !== '/' && currentPath.startsWith(item.path));
-            return (
-              <Link key={item.id} to={item.path} style={{ textDecoration: 'none', width: '100%' }} title={item.label}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px', borderRadius: 12, background: isActive ? '#F0FDF4' : 'transparent', color: isActive ? '#154539' : '#64748B', transition: 'all 0.2s' }}
-                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#F8FAFC'; }}
-                  onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}>
-                  <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />
-                </div>
-              </Link>
-            );
-          })}
+        <nav className="user-sidebar-nav">
+          {navItems.map((item) => (
+            <NavItem key={item.id} item={item} currentPath={pathname} compact />
+          ))}
         </nav>
-        <Link to="/profile" style={{ textDecoration: 'none', marginTop: 8 }}>
-          <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #154539, #0F3028)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontSize: 16, fontWeight: 800 }}>
-            S
-          </div>
+        <Link to="/profile" className="user-sidebar-avatar-link">
+          <div className="user-sidebar-avatar">S</div>
         </Link>
-      </div>
+      </aside>
     );
   }
 
-  // ─── Desktop: full labeled sidebar ───────────────────────────────────────
   return (
-    <div style={{ width: 280, height: '100vh', background: '#FFFFFF', borderRight: '1px solid #F1F5F9', display: 'flex', flexDirection: 'column', padding: '32px 0', position: 'sticky', top: 0, fontFamily: "'Inter', sans-serif", flexShrink: 0 }}>
-      {/* Brand */}
-      <div style={{ padding: '0 28px', marginBottom: 40, display: 'flex', alignItems: 'center', gap: 10 }}>
-        <img src="/Shopsense logo.png" alt="ShopSense AI" style={{ height: 36, objectFit: 'contain' }} />
+    <aside className="user-sidebar">
+      <div className="user-sidebar-brand">
+        <img src="/Shopsense logo.png" alt="ShopSense AI" />
         <div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.5px', lineHeight: 1.1 }}>ShopSense</div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#10B981', background: '#D1FAE5', padding: '1px 6px', borderRadius: 4, display: 'inline-block', marginTop: 2 }}>AI</div>
+          <strong>ShopSense</strong>
+          <span>User Panel</span>
         </div>
       </div>
 
-      {/* Nav */}
-      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, padding: '0 16px' }}>
-        {navItems.map(item => {
-          const isActive = currentPath === item.path || (item.path !== '/' && currentPath.startsWith(item.path));
-          return (
-            <Link key={item.id} to={item.path} style={{ textDecoration: 'none' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', borderRadius: 12, background: isActive ? '#F0FDF4' : 'transparent', color: isActive ? '#154539' : '#64748B', fontWeight: isActive ? 600 : 500, transition: 'all 0.2s ease', cursor: 'pointer' }}
-                onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.color = '#334155'; } }}
-                onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#64748B'; } }}>
-                <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-                <span style={{ fontSize: 15 }}>{item.label}</span>
-              </div>
-            </Link>
-          );
-        })}
+      <div className="user-sidebar-alert">
+        <Bell size={18} />
+        <div>
+          <strong>Smart shopping on</strong>
+          <span>Tracking savings, pantry, and alerts</span>
+        </div>
+      </div>
+
+      <nav className="user-sidebar-nav">
+        {navItems.map((item) => (
+          <NavItem key={item.id} item={item} currentPath={pathname} />
+        ))}
       </nav>
 
-      {/* User Profile */}
-      <Link to="/profile" style={{ textDecoration: 'none' }}>
-        <div style={{ padding: '16px 24px', borderTop: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #154539, #0F3028)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontSize: 16, fontWeight: 800 }}>S</div>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#0F172A' }}>Shubham H.</div>
-              <div style={{ fontSize: 12, color: '#10B981', fontWeight: 500 }}>Free User</div>
-            </div>
-          </div>
-          <ChevronRight size={18} color="#94A3B8" />
-        </div>
-      </Link>
-    </div>
+      <div className="user-sidebar-footer">
+        <Link className="user-sidebar-user" to="/profile">
+          <span className="user-sidebar-avatar">S</span>
+          <span>
+            <strong>Shubham H.</strong>
+            <small>Free User</small>
+          </span>
+          <ChevronRight size={17} />
+        </Link>
+      </div>
+    </aside>
   );
 }

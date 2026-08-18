@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { Search, Plus, Filter, ChevronDown, MoreVertical, ChevronLeft, ChevronRight, Calendar, Clock, ShoppingCart } from 'lucide-react';
+import useWindowWidth, { isMobile } from '../../hooks/useWindowWidth';
 
 // ─── Stat Cards ─────────────────────────────────────────────────────────────────
 export function PantryStats({ items = [], loading }) {
+  const width = useWindowWidth();
+  const mobile = isMobile(width);
   const totalItems = items.length;
   const expiringSoon = items.filter(i => i.status === 'expiring_soon' || (i.estimatedExpiryDate && new Date(i.estimatedExpiryDate) < new Date(Date.now() + 7*24*60*60*1000))).length;
   const lowStock = items.filter(i => i.status === 'low_stock' || i.quantity <= 1).length;
@@ -19,7 +22,7 @@ export function PantryStats({ items = [], loading }) {
   ];
 
   return (
-    <div style={{ display: 'flex', gap: 16, marginBottom: 32 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(5, 1fr)', gap: 16, marginBottom: 32 }}>
       {stats.map((s, i) => (
         <div key={i} style={{
           background: '#FFFFFF',
@@ -65,25 +68,27 @@ export function CategoryTabs({ active, setActive }) {
 
 // ─── Search & Controls ───────────────────────────────────────────────────────────
 export function PantryControls() {
+  const width = useWindowWidth();
+  const mobile = isMobile(width);
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-      <div style={{ display: 'flex', alignItems: 'center', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '10px 16px', flex: 1, maxWidth: 280 }}>
+    <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', alignItems: mobile ? 'stretch' : 'center', gap: 12, marginBottom: 24 }}>
+      <div style={{ display: 'flex', alignItems: 'center', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '10px 16px', flex: 1, maxWidth: mobile ? 'none' : 280, width: '100%' }}>
         <Search size={16} color="#94A3B8" />
         <input type="text" placeholder="Search items..." style={{ border: 'none', outline: 'none', background: 'transparent', marginLeft: 10, fontSize: 14, color: '#0F172A', fontFamily: "'Inter', sans-serif", width: '100%' }} />
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#64748B', fontWeight: 600 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#64748B', fontWeight: 600, whiteSpace: 'nowrap' }}>
         Sort by:
       </div>
       <div style={{ display: 'flex', alignItems: 'center', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '10px 14px', gap: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#334155' }}>
         Expiry Date <ChevronDown size={14} color="#94A3B8" />
       </div>
 
-      <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '10px 16px', fontSize: 13, fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+      <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '10px 16px', fontSize: 13, fontWeight: 600, color: '#334155', cursor: 'pointer', width: mobile ? '100%' : 'auto' }}>
         <Filter size={15} /> Filter
       </button>
 
-      <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#154539', border: 'none', borderRadius: 12, padding: '10px 20px', fontSize: 13, fontWeight: 700, color: '#FFFFFF', cursor: 'pointer', marginLeft: 'auto', boxShadow: '0 4px 12px rgba(21,69,57,0.2)' }}>
+      <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#154539', border: 'none', borderRadius: 12, padding: '10px 20px', fontSize: 13, fontWeight: 700, color: '#FFFFFF', cursor: 'pointer', marginLeft: mobile ? 0 : 'auto', boxShadow: '0 4px 12px rgba(21,69,57,0.2)', width: mobile ? '100%' : 'auto' }}>
         <Plus size={16} /> Add Item
       </button>
     </div>
@@ -125,7 +130,7 @@ function PantryItemCard({ item }) {
         <MoreVertical size={16} color="#94A3B8" />
       </button>
 
-      <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
+      <div style={{ display: 'flex', gap: 16, marginBottom: 16, alignItems: 'flex-start' }}>
         <div style={{ width: 64, height: 64, borderRadius: 12, background: '#F8FAFC', border: '1px solid #E2E8F0', overflow: 'hidden', flexShrink: 0 }}>
           <img src={item.img} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.target.style.display='none'; }} />
         </div>
@@ -154,9 +159,11 @@ function PantryItemCard({ item }) {
 
 // ─── Item Grid ───────────────────────────────────────────────────────────────────
 export function PantryGrid({ items = [], loading, error, onRetry, activeCategory }) {
+  const width = useWindowWidth();
+  const mobile = isMobile(width);
   if (loading) {
     return (
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3, 1fr)', gap: 16 }}>
         {[...Array(6)].map((_, i) => (
           <div key={i} style={{ background: '#F8FAFC', borderRadius: 16, height: 180, animation: 'pulse 1.5s ease-in-out infinite' }} />
         ))}
@@ -211,7 +218,7 @@ export function PantryGrid({ items = [], loading, error, onRetry, activeCategory
   return (
     <div>
       <div style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', marginBottom: 16 }}>{activeCategory} ({formattedItems.length})</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, marginBottom: 24 }}>
         {formattedItems.slice(0, 9).map((item, i) => <PantryItemCard key={i} item={item} />)}
       </div>
       {formattedItems.length > 9 && <Pagination />}

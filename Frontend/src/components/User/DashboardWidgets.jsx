@@ -6,14 +6,17 @@ import {
   ArrowDown, ArrowUp, Link as LinkIcon, Globe
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import useWindowWidth, { isMobile } from '../../hooks/useWindowWidth';
 
 export function HeroCard({ data }) {
   const { totalSaved = 846, betterDeals = 6, increases = 2, recallAlert = 1 } = data || {};
+  const width = useWindowWidth();
+  const mobile = isMobile(width);
   return (
     <div style={{
       background: 'linear-gradient(110deg, #154539 0%, #0F3028 100%)',
       borderRadius: 24,
-      padding: 40,
+      padding: mobile ? 20 : 40,
       color: '#FFFFFF',
       position: 'relative',
       overflow: 'hidden',
@@ -35,14 +38,14 @@ export function HeroCard({ data }) {
         <Sparkles size={14} /> AI Insight
       </div>
 
-      <div style={{ fontSize: 40, fontWeight: 800, marginBottom: 8, letterSpacing: '-1px' }}>
+      <div style={{ fontSize: mobile ? 28 : 40, fontWeight: 800, marginBottom: 8, letterSpacing: '-1px' }}>
         You saved <span style={{ color: '#10B981' }}>₹{totalSaved}</span>
       </div>
-      <div style={{ fontSize: 15, color: 'rgba(255,255,255,0.7)', marginBottom: 40 }}>
+      <div style={{ fontSize: 15, color: 'rgba(255,255,255,0.7)', marginBottom: mobile ? 20 : 40 }}>
         this month with smarter choices.
       </div>
 
-      <div style={{ display: 'flex', gap: 16, marginBottom: 40 }}>
+      <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', gap: 16, marginBottom: mobile ? 20 : 40 }}>
         <StatBadge icon={Sparkles} label="TOTAL SAVED" value={`₹${totalSaved}`} color="#10B981" />
         <StatBadge icon={TagIcon} label="BETTER DEALS" value={betterDeals} color="#3B82F6" />
         <StatBadge icon={ArrowUpRight} label="INCREASES" value={increases} color="#F59E0B" />
@@ -80,7 +83,8 @@ function StatBadge({ icon: Icon, label, value, color }) {
       display: 'flex',
       alignItems: 'center',
       gap: 12,
-      minWidth: 140
+      minWidth: 0,
+      flex: 1
     }}>
       <div style={{ width: 36, height: 36, borderRadius: '50%', background: `rgba(255,255,255,0.1)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Icon size={18} color={color} />
@@ -104,6 +108,8 @@ function TagIcon(props) {
 
 export function ShoppingDNACard({ data }) {
   const { score = 87, persona = 'Budget Conscious', pointsChange = 6 } = data || {};
+  const width = useWindowWidth();
+  const mobile = isMobile(width);
   return (
     <div style={cardStyle}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
@@ -111,7 +117,7 @@ export function ShoppingDNACard({ data }) {
         <h4 style={cardTitleStyle}>Shopping DNA</h4>
       </div>
       
-      <div style={{ fontSize: 48, fontWeight: 800, color: '#0F172A', letterSpacing: '-2px', display: 'flex', alignItems: 'baseline', gap: 4 }}>
+      <div style={{ fontSize: mobile ? 38 : 48, fontWeight: 800, color: '#0F172A', letterSpacing: '-2px', display: 'flex', alignItems: 'baseline', gap: 4 }}>
         {score} <span style={{ fontSize: 16, fontWeight: 600, color: '#94A3B8', letterSpacing: 0 }}>/ 100</span>
       </div>
       <div style={{ fontSize: 14, fontWeight: 600, color: '#334155', marginTop: 8 }}>{persona}</div>
