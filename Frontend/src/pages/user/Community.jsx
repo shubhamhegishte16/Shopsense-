@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import axios from 'axios';
 import {
   AlertTriangle,
   Check,
@@ -16,57 +17,7 @@ import Sidebar from '../../components/User/Sidebar';
 
 const filters = ['All Messages', 'Announcements', 'Food Recalls', 'Tips & Advice', 'General Chat', 'My Issues'];
 
-const communityMessages = [
-  {
-    author: 'ShopSense AI (Admin)',
-    category: 'Announcement',
-    tone: 'green',
-    title: 'Welcome to ShopSense Community!',
-    body: "We're excited to have you here. Connect, share tips and stay updated.",
-    time: 'Just now',
-    icon: Megaphone,
-    pinned: true,
-  },
-  {
-    author: 'ShopSense AI (Admin)',
-    category: 'Food Recall',
-    tone: 'red',
-    title: 'Food Recall Alert: Organic Peanut Butter (Batch B2408)',
-    body: 'This batch may contain undeclared allergens. Please check your pantry and avoid consumption.',
-    time: '15 min ago',
-    icon: AlertTriangle,
-    pinned: true,
-  },
-  {
-    author: 'Aman M.',
-    category: 'General',
-    tone: 'blue',
-    title: 'Any good budget tracker suggestions?',
-    body: 'Looking for a simple app to track monthly expenses. Any recommendations?',
-    time: '2 hours ago',
-    initials: 'AM',
-  },
-  {
-    author: 'You',
-    category: 'My Issue',
-    status: 'Open',
-    tone: 'issue',
-    title: 'Issue: Receipt not scanning properly',
-    body: 'The app is not detecting items in my receipt. Please help.',
-    time: '1 day ago',
-    icon: Headphones,
-  },
-  {
-    author: 'ShopSense AI (Admin)',
-    category: 'Support Response',
-    status: 'Resolved',
-    tone: 'support',
-    title: 'Re: Issue: Receipt not scanning properly',
-    body: 'Thank you for reporting. The issue has been fixed in the latest update. Please try again.',
-    time: '20 hrs ago',
-    icon: Check,
-  },
-];
+const communityMessages = [];
 
 const communityActions = [
   {
@@ -108,21 +59,57 @@ export default function Community() {
   const [search, setSearch] = useState('');
   const [messageText, setMessageText] = useState('');
   const [issueForm, setIssueForm] = useState({ title: '', category: 'Receipt scanning', details: '' });
-  const [sentMessages, setSentMessages] = useState([]);
-  const [userIssues, setUserIssues] = useState([
-    {
-      title: 'Receipt not scanning properly',
-      category: 'Receipt scanning',
-      details: 'The app is not detecting items in my receipt. Please help.',
-      status: 'Open',
-      time: '1 day ago',
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
+  const [userIssues, setUserIssues] = useState([]);
 
-  const allMessages = useMemo(() => [
-    ...sentMessages,
-    ...communityMessages,
-  ], [sentMessages]);
+  useEffect(() => {
+    fetchCommunityData();
+  }, []);
+
+  const fetchCommunityData = async () => {
+    try {
+      const token = localStorage.getItem('shopsense_token');
+      const msgRes = await axios.get('http://localhost:5000/api/community/messages', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (msgRes.data.status === 'success') {
+        const fetchedMsgs = msgRes.data.data.messages.map(m => ({
+          id: m._id,
+          author: m.sender?.fullName || 'User',
+          category: m.type === 'admin_announcement' ? 'Announcement' : m.type === 'food_recall' ? 'Food Recall' : 'General',
+          tone: m.type === 'admin_announcement' ? 'green' : m.type === 'food_recall' ? 'red' : 'blue',
+          title: m.type === 'food_recall' && m.recallReference ? m.recallReference.product : (m.type === 'admin_announcement' ? 'Admin Announcement' : 'Community message'),
+          body: m.content,
+          time: new Date(m.createdAt).toLocaleString(),
+          icon: m.type === 'admin_announcement' ? Megaphone : m.type === 'food_recall' ? AlertTriangle : MessageCircle,
+          initials: m.sender?.fullName?.substring(0, 2).toUpperCase() || 'U',
+          pinned: m.type !== 'user_chat'
+        }));
+        // We want newest first if it's a feed, or oldest first if chat. The backend sorts oldest first. Let's reverse it for the feed view.
+        setMessages(fetchedMsgs.reverse());
+      }
+
+      const issueRes = await axios.get('http://localhost:5000/api/community/issues', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (issueRes.data.status === 'success') {
+        const fetchedIssues = issueRes.data.data.issues.map(i => ({
+          id: i._id,
+          title: 'Issue Report',
+          category: 'Support',
+          details: i.issueDescription,
+          adminResponse: i.adminResponse,
+          status: i.status === 'pending' ? 'Open' : i.status === 'reviewed' ? 'In Progress' : 'Resolved',
+          time: new Date(i.createdAt).toLocaleString()
+        }));
+        setUserIssues(fetchedIssues);
+      }
+    } catch (err) {
+      console.error('Failed to fetch community data', err);
+    }
+  };
+
+  const allMessages = useMemo(() => [...messages], [messages]);
 
   const filteredMessages = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -134,46 +121,69 @@ export default function Community() {
     });
   }, [activeFilter, allMessages, search]);
 
-  function handleSendMessage(event) {
+  async function handleSendMessage(event) {
     event.preventDefault();
     const text = messageText.trim();
     if (!text) return;
 
-    setSentMessages((messages) => [
-      {
-        author: 'You',
-        category: 'General',
-        tone: 'blue',
-        title: 'Community message',
-        body: text,
-        time: 'Just now',
-        initials: 'You',
-      },
-      ...messages,
-    ]);
-    setMessageText('');
-    setActiveFilter('General Chat');
+    try {
+      const token = localStorage.getItem('shopsense_token');
+      await axios.post('http://localhost:5000/api/community/messages', { content: text }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setMessageText('');
+      setActiveFilter('General Chat');
+      fetchCommunityData();
+    } catch (error) {
+      console.error('Failed to send message', error);
+    }
   }
 
-  function handleReportIssue(event) {
+  async function handleReportIssue(event) {
     event.preventDefault();
     const title = issueForm.title.trim();
     const details = issueForm.details.trim();
     if (!title || !details) return;
 
-    setUserIssues((issues) => [
-      {
-        title,
-        category: issueForm.category,
-        details,
-        status: 'Open',
-        time: 'Just now',
-      },
-      ...issues,
-    ]);
-    setIssueForm({ title: '', category: 'Receipt scanning', details: '' });
-    setActiveAction('issues');
-    setActiveFilter('My Issues');
+    try {
+      const token = localStorage.getItem('shopsense_token');
+      await axios.post('http://localhost:5000/api/community/issues', { 
+        issueDescription: `[${issueForm.category}] ${title} - ${details}`
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setIssueForm({ title: '', category: 'Receipt scanning', details: '' });
+      setActiveAction('issues');
+      setActiveFilter('My Issues');
+      fetchCommunityData();
+    } catch (error) {
+      console.error('Failed to report issue', error);
+    }
+  }
+
+  async function handleDeleteMessage(id) {
+    try {
+      const token = localStorage.getItem('shopsense_token');
+      await axios.delete(`http://localhost:5000/api/community/messages/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchCommunityData();
+    } catch (error) {
+      console.error('Failed to delete message', error);
+      alert('Could not delete message. You can only delete your own messages.');
+    }
+  }
+
+  async function handleDeleteIssue(id) {
+    try {
+      const token = localStorage.getItem('shopsense_token');
+      await axios.delete(`http://localhost:5000/api/community/issues/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchCommunityData();
+    } catch (error) {
+      console.error('Failed to delete issue', error);
+    }
   }
 
   return (
@@ -207,9 +217,9 @@ export default function Community() {
 
         <section className="user-community-feed" aria-label="Community messages">
           {filteredMessages.map((message) => {
-            const AvatarIcon = message.icon;
+            const AvatarIcon = message.icon || MessageCircle;
             return (
-              <article className="user-community-message" key={message.title}>
+              <article className="user-community-message" key={message.id || message.title + message.time}>
                 <div className={`user-community-avatar user-community-tone-${message.tone}`}>
                   {message.initials ? <strong>{message.initials}</strong> : <AvatarIcon size={26} />}
                 </div>
@@ -227,6 +237,7 @@ export default function Community() {
                 <div className="user-community-side">
                   <time>{message.time}</time>
                   {message.pinned && <Pin size={17} fill="currentColor" />}
+                  <button type="button" onClick={() => handleDeleteMessage(message.id)} aria-label="Delete message" style={{ color: '#ef4444' }}>Delete</button>
                   <button type="button" aria-label={`More options for ${message.title}`}><MoreVertical size={18} /></button>
                 </div>
               </article>
@@ -302,14 +313,16 @@ export default function Community() {
               </div>
               <div className="user-community-issue-list">
                 {userIssues.map((issue) => (
-                  <article key={`${issue.title}-${issue.time}`}>
+                  <article key={issue.id || `${issue.title}-${issue.time}`}>
                     <div>
                       <strong>{issue.title}</strong>
                       <p>{issue.details}</p>
+                      {issue.adminResponse && <p style={{marginTop: 8, color: '#10b981'}}><strong>Admin:</strong> {issue.adminResponse}</p>}
                     </div>
                     <span>{issue.category}</span>
                     <b>{issue.status}</b>
                     <time>{issue.time}</time>
+                    <button type="button" onClick={() => handleDeleteIssue(issue.id)} style={{ padding: '4px 8px', background: '#fee2e2', color: '#ef4444', borderRadius: '4px', border: 'none', cursor: 'pointer' }}>Delete</button>
                   </article>
                 ))}
               </div>
