@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Bell, Settings, Filter, ChevronDown, X } from 'lucide-react';
 import useWindowWidth, { isMobile } from '../../hooks/useWindowWidth';
 
@@ -21,6 +22,7 @@ function CalendarIcon(props) {
 }
 
 export default function TopNav({ showReceiptFilters = false, titleNode }) {
+  const navigate = useNavigate();
   const width = useWindowWidth();
   const mobile = isMobile(width);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -68,9 +70,12 @@ export default function TopNav({ showReceiptFilters = false, titleNode }) {
                 <button onClick={() => setSearchOpen(true)} style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid #E2E8F0', background: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                   <Search size={17} color="#334155" />
                 </button>
-                <button style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid #E2E8F0', background: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative' }}>
+                <button onClick={() => navigate('/notifications')} style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid #E2E8F0', background: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative' }}>
                   <Bell size={17} color="#334155" />
                   <div style={{ position: 'absolute', top: 9, right: 11, width: 7, height: 7, background: '#10B981', borderRadius: '50%', border: '2px solid #FFF' }} />
+                </button>
+                <button onClick={() => navigate('/profile')} style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid #E2E8F0', background: '#FFF', overflow: 'hidden', cursor: 'pointer', padding: 0 }}>
+                  <img src={JSON.parse(localStorage.getItem('shopsense_user'))?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${JSON.parse(localStorage.getItem('shopsense_user'))?.fullName || 'user'}`} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </button>
               </div>
             </div>
@@ -84,17 +89,20 @@ export default function TopNav({ showReceiptFilters = false, titleNode }) {
             <div>{titleNode}</div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <button style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid #E2E8F0', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative' }}>
+              <button onClick={() => navigate('/notifications')} style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid #E2E8F0', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative' }}>
                 <Bell size={20} color="#334155" />
                 <div style={{ position: 'absolute', top: 10, right: 12, width: 8, height: 8, background: '#10B981', borderRadius: '50%', border: '2px solid #FFFFFF' }} />
               </button>
               {showReceiptFilters ? (
                 <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#154539', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>i</div>
               ) : (
-                <button style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid #E2E8F0', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <button onClick={() => navigate('/settings')} style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid #E2E8F0', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                   <Settings size={20} color="#334155" />
                 </button>
               )}
+              <button onClick={() => navigate('/profile')} style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid #E2E8F0', background: '#FFFFFF', overflow: 'hidden', cursor: 'pointer', padding: 0 }}>
+                <img src={JSON.parse(localStorage.getItem('shopsense_user'))?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${JSON.parse(localStorage.getItem('shopsense_user'))?.fullName || 'user'}`} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </button>
             </div>
           </div>
 

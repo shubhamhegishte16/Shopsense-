@@ -15,12 +15,11 @@ const productSchema = new mongoose.Schema({
 });
 
 // Update the updatedAt field before saving
-productSchema.pre('save', function(next) {
+productSchema.pre('save', function() {
   this.updatedAt = Date.now();
   if (!this.normalizedName) {
     this.normalizedName = this.name.toLowerCase().trim();
   }
-  next();
 });
 
 module.exports = mongoose.model('Product', productSchema);

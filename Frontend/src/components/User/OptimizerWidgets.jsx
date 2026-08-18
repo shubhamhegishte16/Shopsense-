@@ -119,32 +119,8 @@ export function InsightCards({ cards = [] }) {
     }
   };
 
-  const localCards = cards.length > 0 ? cards : [
-    {
-      type: 'duplicate',
-      title: 'Duplicate Detector',
-      body: 'You bought Toothpaste 5 days ago. Do you really need another one?',
-      linkText: 'View Item',
-    },
-    {
-      type: 'pricedrop',
-      title: 'Price Drop Alert',
-      body: 'Cooking Oil prices likely to drop in 10 days. Wait and save up to ₹45',
-      linkText: 'View Forecast',
-    },
-    {
-      type: 'bulk',
-      title: 'Bulk Buying Suggestion',
-      body: 'Buy 5kg Rice instead of 1kg every week. Estimated yearly savings ₹642',
-      linkText: 'View Forecast',
-    },
-    {
-      type: 'impulse',
-      title: 'Wasted Money',
-      body: 'Impulse spending ₹1,254 mostly on snacks after 8 PM.',
-      linkText: 'See Breakdown',
-    },
-  ];
+  if (!cards || cards.length === 0) return null;
+  const localCards = cards;
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20, marginBottom: 32 }}>
@@ -171,17 +147,9 @@ export function InsightCards({ cards = [] }) {
 
 // ─── Bottom: Recommendations + Reorder ─────────────────────────────────────────
 export function BottomSection({ recommendations = [], reorders = [] }) {
-  const localRecs = recommendations.length > 0 ? recommendations : [
-    { name: "Switch to 'Fortune Sunlite Oil' instead of 'Saffola Gold'", sub: 'Similar quality, 4.8 ★ rating', unit: 'per unit', save: '₹48' },
-    { name: 'Mother Dairy Butter is cheaper on Amazon Fresh.', sub: 'Same quality', unit: 'per unit', save: '₹9' },
-    { name: 'Remove duplicate shampoo from your list.', sub: 'You have enough stock', unit: 'this month', save: '₹120' },
-  ];
-
-  const localReorders = reorders.length > 0 ? reorders : [
-    { name: 'Milk (Amul)', sub: 'Every 8 days', next: 'Next in 2 days', date: '24 May' },
-    { name: 'Sunflower Oil', sub: 'Every 30 days', next: 'Next in 12 days', date: '1 Jun' },
-    { name: 'Washing Powder', sub: 'Every 28 days', next: 'Next in 8 days', date: '30 May' },
-  ];
+  if (!recommendations || recommendations.length === 0) return null;
+  const localRecs = recommendations;
+  const localReorders = reorders || [];
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
@@ -240,13 +208,8 @@ export function BottomSection({ recommendations = [], reorders = [] }) {
 
 // ─── Right Panel: Savings Breakdown ────────────────────────────────────────────
 export function SavingsBreakdownPanel({ categoryData = [], totalSavings = 1284 }) {
-  const defaultData = [
-    { name: 'Groceries', value: 620, color: '#10B981', percent: '48%' },
-    { name: 'Daily Needs', value: 354, color: '#F59E0B', percent: '28%' },
-    { name: 'Electronics', value: 310, color: '#8B5CF6', percent: '24%' },
-  ];
-
-  const data = categoryData.length > 0 ? categoryData : defaultData;
+  if (!categoryData || categoryData.length === 0) return null;
+  const data = categoryData;
 
   return (
     <div style={{ background: '#FFFFFF', border: '1px solid #F1F5F9', borderRadius: 20, padding: 24, marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.02)' }}>
@@ -289,13 +252,8 @@ export function SavingsBreakdownPanel({ categoryData = [], totalSavings = 1284 }
 
 // ─── Right Panel: Store Optimizer ──────────────────────────────────────────────
 export function StoreOptimizerPanel({ stores = [] }) {
-  const defaultStores = [
-    { name: 'Blinkit', price: '₹2,180', tag: 'Cheapest', tagColor: '#10B981', tagBg: '#D1FAE5' },
-    { name: 'Zepto', price: '₹2,410', tag: '+₹230', tagColor: '#EF4444', tagBg: '#FEE2E2' },
-    { name: 'Instamart', price: '₹2,365', tag: '+₹185', tagColor: '#EF4444', tagBg: '#FEE2E2' },
-  ];
-
-  const localStores = stores.length > 0 ? stores : defaultStores;
+  if (!stores || stores.length === 0) return null;
+  const localStores = stores;
 
   return (
     <div style={{ background: '#FFFFFF', border: '1px solid #F1F5F9', borderRadius: 20, padding: 24, marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.02)' }}>

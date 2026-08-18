@@ -88,7 +88,6 @@ export default function Insights() {
                 {/* Right Column */}
                 <div className="right-panel-aside">
                   <TopCategoriesPanel data={data.topCategories} />
-                  <SmartSummaryPanel points={data.summaryPoints} totalSpent={data.totalSpent} lastMonthTotal={data.lastMonthTotal} />
                 </div>
 
               </div>

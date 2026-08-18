@@ -29,6 +29,9 @@ function PantryTopNav({ onRefresh, titleNode }) {
           <button onClick={onRefresh} style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: '#154539', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <RotateCw size={18} color="#FFFFFF" />
           </button>
+          <button style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid #E2E8F0', background: '#FFFFFF', overflow: 'hidden', cursor: 'pointer', padding: 0 }}>
+            <img src={JSON.parse(localStorage.getItem('shopsense_user'))?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${JSON.parse(localStorage.getItem('shopsense_user'))?.fullName || 'user'}`} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          </button>
         </div>
       </div>
 
