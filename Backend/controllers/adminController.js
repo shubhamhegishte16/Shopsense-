@@ -299,3 +299,153 @@ exports.deleteProduct = async (req, res) => {
   }
 };
 
+const CommunityMessage = require('../models/CommunityMessage');
+const IssueReport = require('../models/IssueReport');
+const FoodRecall = require('../models/FoodRecall');
+
+exports.getAllCommunityMessages = async (req, res) => {
+  try {
+    const messages = await CommunityMessage.find()
+      .populate('sender', 'fullName avatar role')
+      .populate('recallReference')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        messages
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.postAdminMessage = async (req, res) => {
+  try {
+    const { content } = req.body;
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({ success: false, message: 'Message content cannot be empty' });
+    }
+
+    const newMessage = await CommunityMessage.create({
+      sender: req.user._id,
+      content,
+      type: 'admin_announcement'
+    });
+
+    await newMessage.populate('sender', 'fullName avatar role');
+
+    res.status(201).json({
+      success: true,
+      data: {
+        message: newMessage
+      }
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+exports.postFoodRecall = async (req, res) => {
+  try {
+    const { recallId, product, brand, category, reason, severity, recallDate, effectiveDate, issuedByAuthority, referenceNo, description, affectedRegion, affectedUsers, status } = req.body;
+
+    const newRecall = await FoodRecall.create({
+      recallId,
+      product,
+      brand,
+      category,
+      reason,
+      severity,
+      recallDate,
+      effectiveDate,
+      issuedByAuthority,
+      referenceNo,
+      description,
+      affectedRegion,
+      affectedUsers,
+      status,
+      adminId: req.user._id
+    });
+
+    // Automatically post to community
+    const recallMessage = await CommunityMessage.create({
+      sender: req.user._id,
+      content: `FOOD RECALL: ${product} (${brand}) - ${reason}. ${description}`,
+      type: 'food_recall',
+      recallReference: newRecall._id
+    });
+
+    await recallMessage.populate('sender', 'fullName avatar role');
+    await recallMessage.populate('recallReference');
+
+    res.status(201).json({
+      success: true,
+      data: {
+        recall: newRecall,
+        message: recallMessage
+      }
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+exports.getFoodRecalls = async (req, res) => {
+  try {
+    const recalls = await FoodRecall.find().sort({ createdAt: -1 });
+    res.status(200).json({
+      success: true,
+      data: {
+        recalls
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.getAllIssues = async (req, res) => {
+  try {
+    const issues = await IssueReport.find()
+      .populate('user', 'fullName email avatar')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        issues
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.updateIssue = async (req, res) => {
+  try {
+    const issueId = req.params.id;
+    const { status, adminResponse } = req.body;
+
+    const issue = await IssueReport.findById(issueId);
+    if (!issue) {
+      return res.status(404).json({ success: false, message: 'Issue not found' });
+    }
+
+    if (status) issue.status = status;
+    if (adminResponse !== undefined) issue.adminResponse = adminResponse;
+
+    await issue.save();
+
+    res.status(200).json({
+      success: true,
+      data: {
+        issue
+      }
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
