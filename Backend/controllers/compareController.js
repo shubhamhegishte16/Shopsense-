@@ -1,4 +1,5 @@
 const { compareProducts } = require('../utils/geminiService');
+const Notification = require('../models/Notification');
 
 // Maps store names to consistent UI properties
 const STORE_UI_CONFIG = {
@@ -85,6 +86,16 @@ exports.searchStores = async (req, res) => {
       img: productImageUrl || 'https://images.unsplash.com/photo-1585664811087-47f65abbad64?auto=format&fit=crop&w=400&h=300&q=80',
       comparisons: enrichedComparisons
     };
+
+    // Notification for comparison
+    if (req.user && req.user._id) {
+      await Notification.create({
+        userId: req.user._id,
+        title: 'Price Comparison Generated',
+        message: `Successfully compared prices for ${productName}. Best value found at ${enrichedComparisons[0]?.store || 'multiple stores'}.`,
+        type: 'compare'
+      });
+    }
 
     res.json({ success: true, product: finalProduct });
 

@@ -3,6 +3,7 @@ const Product = require('../models/Product');
 const PantryItem = require('../models/PantryItem');
 const { extractReceiptData } = require('../utils/geminiService');
 const { uploadToCloudinary } = require('../config/cloudinary');
+const Notification = require('../models/Notification');
 
 exports.uploadReceipt = async (req, res) => {
   try {
@@ -56,6 +57,26 @@ exports.uploadReceipt = async (req, res) => {
     const savedReceipt = await newReceipt.save();
     console.log("Receipt saved to MongoDB:", savedReceipt._id);
 
+    // Notification: New receipt scanned
+    await Notification.create({
+      userId,
+      title: 'New Receipt Scanned',
+      message: `Your receipt from ${extractedData.storeName || 'a store'} has been uploaded successfully.`,
+      type: 'receipt',
+      relatedModel: 'Receipt',
+      relatedId: savedReceipt._id
+    });
+
+    // Notification: Data extracted
+    await Notification.create({
+      userId,
+      title: 'Receipt Data Extracted',
+      message: `Extracted ${extractedData.items?.length || 0} items from your recent receipt.`,
+      type: 'system',
+      relatedModel: 'Receipt',
+      relatedId: savedReceipt._id
+    });
+
     // 5. Process Products and Pantry — per-item error isolation
     const items = extractedData.items || [];
     for (const item of items) {
@@ -88,6 +109,18 @@ exports.uploadReceipt = async (req, res) => {
         // Log but don't fail the entire request for a single bad item
         console.error(`Failed to process pantry item "${item.name}":`, itemErr.message);
       }
+    }
+
+    // Notification: New products in pantry
+    if (items.length > 0) {
+      await Notification.create({
+        userId,
+        title: 'New Products in Pantry',
+        message: `${items.length} items from your receipt have been added to your pantry.`,
+        type: 'pantry',
+        relatedModel: 'Receipt',
+        relatedId: savedReceipt._id
+      });
     }
 
     res.status(201).json({

@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const { uploadToCloudinary } = require('../config/cloudinary');
 const bcrypt = require('bcryptjs');
+const Notification = require('../models/Notification');
 
 // ─── Update Profile Information ─────────────────────────────────────────────
 exports.updateProfile = async (req, res) => {
@@ -22,6 +23,15 @@ exports.updateProfile = async (req, res) => {
     if (bio !== undefined) user.bio = bio;
 
     await user.save({ validateModifiedOnly: true });
+
+    await Notification.create({
+      userId: user._id,
+      title: 'Profile Updated',
+      message: 'Your profile information has been successfully updated.',
+      type: 'profile',
+      relatedModel: 'User',
+      relatedId: user._id
+    });
 
     res.json({
       success: true,

@@ -1,39 +1,98 @@
-import { useMemo, useState } from 'react';
-import { AlertTriangle, Bell, CheckCircle2, FileText, Filter, Gift, Handshake, PackageCheck, Search, ShieldAlert, Sparkles, Tag, TrendingUp } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  AlertTriangle, Bell, CheckCircle2, FileText, Filter,
+  Loader2, PackageCheck, Search, ShieldAlert, Sparkles, TrendingUp, User
+} from 'lucide-react';
 import Sidebar from '../../components/User/Sidebar';
 
-const userNotifications = [
-  ['Receipt scanned successfully', 'Your receipt from D-Mart on Aug 14, 2026 has been scanned and analyzed.', 'Receipt', 'Just now', true, FileText, 'green'],
-  ['Food Recall Alert', 'A product in your recent receipt has been recalled. Tap to view details.', 'Alert', '5 mins ago', true, ShieldAlert, 'red'],
-  ['Budget limit reached', 'You have reached 90% of your monthly Groceries budget.', 'Budget', '1 hour ago', true, Tag, 'amber'],
-  ['New offer for you!', 'Exclusive offer on your favorite products. Check now and save more!', 'Offer', '3 hours ago', false, Sparkles, 'purple'],
-  ['Weekly spending summary is ready', 'Check out your spending summary for Aug 8 - Aug 14, 2026.', 'Insight', 'Yesterday', false, TrendingUp, 'blue'],
-  ['Pantry item running low', 'Milk is running low in your pantry. Add it to your shopping list?', 'Pantry', 'Yesterday', false, PackageCheck, 'green'],
-  ['System update', "We've improved receipt scanning accuracy. Update now for better experience.", 'System', '2 days ago', false, Bell, 'purple'],
-  ['You earned 50 points!', 'Scan more receipts to earn more points and unlock exciting rewards.', 'Reward', '3 days ago', false, Gift, 'teal'],
-  ['Welcome to ShopSense AI!', "Let's get started! Scan your first receipt and explore smart insights.", 'Welcome', '1 week ago', false, Handshake, 'orange'],
-];
+const API_BASE = 'http://localhost:5000/api';
 
-const tabs = ['All', 'Unread', 'Receipts', 'Alerts', 'System', 'Offers'];
+function getAuthHeaders() {
+  const token = localStorage.getItem('shopsense_token');
+  return { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+}
+
+// Map backend type -> { icon, tone }
+const TYPE_CONFIG = {
+  receipt:    { Icon: FileText,     tone: 'green'  },
+  system:     { Icon: Bell,         tone: 'purple' },
+  pantry:     { Icon: PackageCheck, tone: 'green'  },
+  profile:    { Icon: User,         tone: 'blue'   },
+  compare:    { Icon: TrendingUp,   tone: 'blue'   },
+  recall:     { Icon: ShieldAlert,  tone: 'red'    },
+  admin_note: { Icon: AlertTriangle,tone: 'amber'  },
+};
+
+function typeConfig(type) {
+  return TYPE_CONFIG[type] || { Icon: Sparkles, tone: 'purple' };
+}
 
 function toneClass(tone) {
   return `user-notification-tone-${tone}`;
 }
 
+function timeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins  = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days  = Math.floor(diff / 86400000);
+  if (mins < 1)   return 'Just now';
+  if (mins < 60)  return `${mins} min${mins > 1 ? 's' : ''} ago`;
+  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  if (days === 1) return 'Yesterday';
+  return `${days} days ago`;
+}
+
+const tabs = ['All', 'Unread', 'Receipt', 'Alert', 'Pantry', 'System'];
+
 export default function Notifications() {
-  const [activeTab, setActiveTab] = useState('All');
-  const [search, setSearch] = useState('');
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading]             = useState(true);
+  const [error, setError]                 = useState(null);
+  const [activeTab, setActiveTab]         = useState('All');
+  const [search, setSearch]               = useState('');
+
+  const fetchNotifications = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_BASE}/notifications`, { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error('Failed to fetch notifications');
+      const data = await res.json();
+      setNotifications(data.notifications || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
+
+  const markRead = useCallback(async (id) => {
+    try {
+      await fetch(`${API_BASE}/notifications/${id}/read`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+      });
+      setNotifications(prev =>
+        prev.map(n => (n._id === id ? { ...n, read: true } : n))
+      );
+    } catch { /* silent */ }
+  }, []);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return userNotifications.filter(([title, message, type, , unread]) => {
-      const tabMatch = activeTab === 'All'
-        || (activeTab === 'Unread' && unread)
-        || type.toLowerCase() === activeTab.replace(/s$/, '').toLowerCase();
-      const searchMatch = !query || `${title} ${message} ${type}`.toLowerCase().includes(query);
+    return notifications.filter(n => {
+      const tabMatch =
+        activeTab === 'All'    ||
+        (activeTab === 'Unread' && !n.read) ||
+        n.type?.toLowerCase() === activeTab.toLowerCase() ||
+        (activeTab === 'Alert' && n.type === 'recall');
+      const searchMatch = !query || `${n.title} ${n.message} ${n.type}`.toLowerCase().includes(query);
       return tabMatch && searchMatch;
     });
-  }, [activeTab, search]);
+  }, [notifications, activeTab, search]);
 
   return (
     <div className="user-page-shell">
@@ -47,15 +106,26 @@ export default function Notifications() {
           <div className="user-notification-actions">
             <label className="user-notification-search">
               <Search size={20} />
-              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search notifications..." />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search notifications..."
+              />
             </label>
-            <button type="button"><Filter size={19} />Filter</button>
+            <button type="button" onClick={fetchNotifications}><Filter size={19} />Refresh</button>
           </div>
         </header>
 
         <nav className="user-notification-tabs" aria-label="Notification filters">
-          {tabs.map((tab) => (
-            <button key={tab} className={activeTab === tab ? 'is-active' : ''} type="button" onClick={() => setActiveTab(tab)}>{tab}</button>
+          {tabs.map(tab => (
+            <button
+              key={tab}
+              className={activeTab === tab ? 'is-active' : ''}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab}
+            </button>
           ))}
         </nav>
 
@@ -65,26 +135,53 @@ export default function Notifications() {
             <span>Type</span>
             <span>Time</span>
           </div>
-          {filtered.map(([title, message, type, time, unread, Icon, tone]) => (
-            <article className="user-notification-row" key={title}>
-              <div className="user-notification-message">
-                <span className={`user-notification-icon ${toneClass(tone)}`}><Icon size={22} /></span>
-                <div>
-                  <h2>{title}</h2>
-                  <p>{message}</p>
+
+          {loading && (
+            <div className="user-notification-empty">
+              <Loader2 size={28} style={{ animation: 'spin 1s linear infinite' }} />
+              <span>Loading notifications…</span>
+            </div>
+          )}
+
+          {!loading && error && (
+            <div className="user-notification-empty">
+              <AlertTriangle size={24} />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {!loading && !error && filtered.map(n => {
+            const { Icon, tone } = typeConfig(n.type);
+            return (
+              <article
+                className={`user-notification-row${!n.read ? ' is-unread' : ''}`}
+                key={n._id}
+                onClick={() => !n.read && markRead(n._id)}
+                style={{ cursor: !n.read ? 'pointer' : 'default' }}
+              >
+                <div className="user-notification-message">
+                  <span className={`user-notification-icon ${toneClass(tone)}`}>
+                    <Icon size={22} />
+                  </span>
+                  <div>
+                    <h2>{n.title}</h2>
+                    <p>{n.message}</p>
+                  </div>
                 </div>
-              </div>
-              <span className={`user-notification-badge ${toneClass(tone)}`}>{type}</span>
-              <time>{time}</time>
-              {unread && <i aria-label="Unread notification" />}
-            </article>
-          ))}
+                <span className={`user-notification-badge ${toneClass(tone)}`}>{n.type}</span>
+                <time>{timeAgo(n.createdAt)}</time>
+                {!n.read && <i aria-label="Unread notification" />}
+              </article>
+            );
+          })}
         </section>
 
-        <div className="user-notification-empty">
-          <span>No more notifications to show</span>
-          <CheckCircle2 size={24} />
-        </div>
+        {!loading && !error && filtered.length === 0 && (
+          <div className="user-notification-empty">
+            <CheckCircle2 size={24} />
+            <span>No notifications to show</span>
+          </div>
+        )}
       </main>
     </div>
   );

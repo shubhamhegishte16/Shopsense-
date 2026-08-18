@@ -6,7 +6,7 @@ const notificationSchema = new mongoose.Schema({
   message: { type: String, required: true, trim: true },
   type: {
     type: String,
-    enum: ['admin_note', 'receipt', 'recall', 'system'],
+    enum: ['admin_note', 'receipt', 'recall', 'system', 'pantry', 'profile', 'compare'],
     default: 'system',
   },
   relatedModel: { type: String, trim: true },

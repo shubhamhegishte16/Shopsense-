@@ -377,6 +377,18 @@ exports.postFoodRecall = async (req, res) => {
       recallReference: newRecall._id
     });
 
+    // Notify all users about food recall
+    const allUsers = await User.find({}).select('_id');
+    const notifications = allUsers.map(u => ({
+      userId: u._id,
+      title: `Food Recall Alert: ${product}`,
+      message: `${brand} ${product} has been recalled. Reason: ${reason}.`,
+      type: 'recall',
+      relatedModel: 'FoodRecall',
+      relatedId: newRecall._id
+    }));
+    await Notification.insertMany(notifications);
+
     await recallMessage.populate('sender', 'fullName avatar role');
     await recallMessage.populate('recallReference');
 
