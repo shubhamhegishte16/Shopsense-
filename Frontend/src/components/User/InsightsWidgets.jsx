@@ -86,14 +86,23 @@ export function InsightsHeader() {
   );
 }
 
-export function InsightsActionBar() {
+export function InsightsActionBar({ period, setPeriod }) {
   const width = useWindowWidth();
   const mobile = isMobile(width);
   return (
     <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', alignItems: mobile ? 'stretch' : 'center', justifyContent: 'flex-end', gap: 12, marginBottom: 28, width: mobile ? '100%' : 'auto' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1px solid #E2E8F0', borderRadius: 10, padding: '8px 14px', fontSize: 13, fontWeight: 600, color: '#334155', background: '#FFFFFF', cursor: 'pointer' }}>
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8, border: '1px solid #E2E8F0', borderRadius: 10, padding: '8px 14px', fontSize: 13, fontWeight: 600, color: '#334155', background: '#FFFFFF', cursor: 'pointer' }}>
         <Calendar size={14} color="#64748B" />
-        This Month
+        <select 
+          value={period || 'this_month'} 
+          onChange={e => setPeriod && setPeriod(e.target.value)}
+          style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', left: 0, top: 0, cursor: 'pointer' }}
+        >
+          <option value="this_month">This Month</option>
+          <option value="last_month">Last Month</option>
+          <option value="all_time">All Time</option>
+        </select>
+        <span>{period === 'all_time' ? 'All Time' : period === 'last_month' ? 'Last Month' : 'This Month'}</span>
         <ChevronDown size={13} color="#94A3B8" />
       </div>
       <button style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1px solid #E2E8F0', borderRadius: 10, padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#334155', background: '#FFFFFF', cursor: 'pointer' }}>

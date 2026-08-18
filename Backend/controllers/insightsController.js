@@ -3,6 +3,7 @@ const Receipt = require('../models/Receipt');
 exports.getInsights = async (req, res) => {
   try {
     const userId = req.user.id;
+    const period = req.query.period || 'this_month';
     // Fetch all processed receipts for the user
     const receipts = await Receipt.find({ userId, status: 'processed' }).lean();
 
@@ -41,7 +42,19 @@ exports.getInsights = async (req, res) => {
       const monthKey = `${m}-${y}`;
       monthlyMap[monthKey] = (monthlyMap[monthKey] || 0) + receipt.totalAmount;
 
-      if (m === currentMonth && y === currentYear) {
+      let isPrimary = false;
+      let isSecondary = false;
+
+      if (period === 'all_time') {
+        isPrimary = true;
+      } else if (period === 'last_month') {
+        isPrimary = (m === lastMonth && y === lastMonthYear);
+      } else {
+        isPrimary = (m === currentMonth && y === currentYear);
+        isSecondary = (m === lastMonth && y === lastMonthYear);
+      }
+
+      if (isPrimary) {
         thisMonthTotal += receipt.totalAmount;
         thisMonthOrders++;
         
@@ -53,7 +66,7 @@ exports.getInsights = async (req, res) => {
           const cat = item.category || 'Others';
           categoryTotals[cat] = (categoryTotals[cat] || 0) + (item.totalPrice || 0);
         });
-      } else if (m === lastMonth && y === lastMonthYear) {
+      } else if (isSecondary) {
         lastMonthTotal += receipt.totalAmount;
         lastMonthOrders++;
         trendMapLastMonth[d] = (trendMapLastMonth[d] || 0) + receipt.totalAmount;
@@ -78,12 +91,14 @@ exports.getInsights = async (req, res) => {
     const lastMonthScore = 90;
     const scoreDiff = shoppingScore - lastMonthScore;
 
+    const compareText = period === 'all_time' ? '' : 'vs Last Mo';
+
     const stats = [
-      { label: 'TOTAL SPENT', value: `₹${Math.round(thisMonthTotal).toLocaleString()}`, change: `${calcChange(thisMonthTotal, lastMonthTotal)} vs Last Mo`, up: thisMonthTotal >= lastMonthTotal, color: '#154539' },
-      { label: 'TOTAL ORDERS', value: String(thisMonthOrders), change: `${calcChange(thisMonthOrders, lastMonthOrders)} vs Last Mo`, up: thisMonthOrders >= lastMonthOrders, color: '#3B82F6' },
-      { label: 'AVG. ORDER VALUE', value: `₹${thisMonthAvg.toLocaleString()}`, change: `${calcChange(thisMonthAvg, lastMonthAvg)} vs Last Mo`, up: thisMonthAvg >= lastMonthAvg, color: '#8B5CF6' },
-      { label: 'TOTAL SAVINGS', value: `₹${thisMonthSavings.toLocaleString()}`, change: `${calcChange(thisMonthSavings, lastMonthSavings)} vs Last Mo`, up: thisMonthSavings >= lastMonthSavings, color: '#10B981' },
-      { label: 'SHOPPING SCORE', value: `${shoppingScore}/100`, change: `${scoreDiff >= 0 ? '↑' : '↓'} ${Math.abs(scoreDiff)} pts vs Last Mo`, up: scoreDiff >= 0, color: '#F59E0B' },
+      { label: 'TOTAL SPENT', value: `₹${Math.round(thisMonthTotal).toLocaleString()}`, change: period === 'all_time' ? '' : `${calcChange(thisMonthTotal, lastMonthTotal)} ${compareText}`, up: thisMonthTotal >= lastMonthTotal, color: '#154539' },
+      { label: 'TOTAL ORDERS', value: String(thisMonthOrders), change: period === 'all_time' ? '' : `${calcChange(thisMonthOrders, lastMonthOrders)} ${compareText}`, up: thisMonthOrders >= lastMonthOrders, color: '#3B82F6' },
+      { label: 'AVG. ORDER VALUE', value: `₹${thisMonthAvg.toLocaleString()}`, change: period === 'all_time' ? '' : `${calcChange(thisMonthAvg, lastMonthAvg)} ${compareText}`, up: thisMonthAvg >= lastMonthAvg, color: '#8B5CF6' },
+      { label: 'TOTAL SAVINGS', value: `₹${thisMonthSavings.toLocaleString()}`, change: period === 'all_time' ? '' : `${calcChange(thisMonthSavings, lastMonthSavings)} ${compareText}`, up: thisMonthSavings >= lastMonthSavings, color: '#10B981' },
+      { label: 'SHOPPING SCORE', value: `${shoppingScore}/100`, change: period === 'all_time' ? '' : `${scoreDiff >= 0 ? '↑' : '↓'} ${Math.abs(scoreDiff)} pts ${compareText}`, up: scoreDiff >= 0, color: '#F59E0B' },
     ];
 
     // Build Category Data
@@ -162,11 +177,11 @@ exports.getInsights = async (req, res) => {
 
     // Summary Points
     const summaryPoints = [
-      categoryData.length > 0 ? `Your top category is ${categoryData[0].name} (${categoryData[0].pct}%).` : 'No categories this month.',
+      categoryData.length > 0 ? `Your top category is ${categoryData[0].name} (${categoryData[0].pct}%).` : 'No categories.',
       `You placed ${thisMonthOrders} orders with an average order value of ₹${thisMonthAvg.toLocaleString()}.`,
-      thisMonthTotal > lastMonthTotal ? `You spent more this month compared to last month.` : `You are saving more compared to last month.`,
+      period !== 'all_time' ? (thisMonthTotal > lastMonthTotal ? `You spent more this period compared to last.` : `You are saving more compared to last period.`) : '',
       "Keep it up! You're making smarter shopping decisions."
-    ];
+    ].filter(Boolean);
 
     res.json({
       success: true,

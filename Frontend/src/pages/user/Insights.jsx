@@ -17,13 +17,16 @@ import {
 export default function Insights() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [period, setPeriod] = useState('this_month');
 
   useEffect(() => {
     const fetchInsights = async () => {
+      setLoading(true);
       try {
         const token = localStorage.getItem('shopsense_token');
         const res = await axios.get('http://localhost:5000/api/insights', {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
+          params: { period }
         });
         if (res.data.success) {
           setData(res.data.data);
@@ -35,7 +38,7 @@ export default function Insights() {
       }
     };
     fetchInsights();
-  }, []);
+  }, [period]);
 
   return (
     <div className="page-wrapper">
@@ -47,7 +50,7 @@ export default function Insights() {
         <TopNav titleNode={
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
             <InsightsHeader />
-            <InsightsActionBar />
+            <InsightsActionBar period={period} setPeriod={setPeriod} />
           </div>
         } />
 

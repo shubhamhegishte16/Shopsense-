@@ -38,11 +38,13 @@ exports.searchStores = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Product name is required' });
     }
 
-    // Call Gemini to get real-time store comparisons
-    const rawComparisons = await compareProducts({ productName, brand, category, description });
+    // Call Gemini to get real-time store comparisons and product image
+    const rawResult = await compareProducts({ productName, brand, category, description });
+    const rawComparisons = rawResult?.comparisons || [];
+    const productImageUrl = rawResult?.imageUrl || '';
 
     if (!rawComparisons || !Array.isArray(rawComparisons) || rawComparisons.length === 0) {
-      return res.json({ success: true, product: { name: productName, comparisons: [] } });
+      return res.json({ success: true, product: { name: productName, img: productImageUrl, comparisons: [] } });
     }
 
     // Process and enrich the raw data from Gemini
@@ -80,11 +82,7 @@ exports.searchStores = async (req, res) => {
       brand: brand || '',
       category: category || '',
       desc: description || '',
-      img: category?.toLowerCase().includes('electronics')
-        ? 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=400&h=300&q=80'
-        : category?.toLowerCase().includes('furniture')
-        ? 'https://images.unsplash.com/photo-1505797149-43b0069ec26b?auto=format&fit=crop&w=400&h=300&q=80'
-        : 'https://images.unsplash.com/photo-1585664811087-47f65abbad64?auto=format&fit=crop&w=400&h=300&q=80',
+      img: productImageUrl || 'https://images.unsplash.com/photo-1585664811087-47f65abbad64?auto=format&fit=crop&w=400&h=300&q=80',
       comparisons: enrichedComparisons
     };
 
