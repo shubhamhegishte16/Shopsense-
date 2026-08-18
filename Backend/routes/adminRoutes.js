@@ -19,4 +19,13 @@ router.post('/products', adminController.createProduct);
 router.put('/products/:productId', adminController.updateProduct);
 router.delete('/products/:productId', adminController.deleteProduct);
 
+// Community / Insights routes
+router.get('/community/messages', adminController.getAllCommunityMessages);
+router.post('/community/messages', adminController.postAdminMessage);
+router.get('/community/food-recalls', adminController.getFoodRecalls);
+router.post('/community/food-recalls', adminController.postFoodRecall);
+
+router.get('/community/issues', adminController.getAllIssues);
+router.patch('/community/issues/:id', adminController.updateIssue);
+
 module.exports = router;
