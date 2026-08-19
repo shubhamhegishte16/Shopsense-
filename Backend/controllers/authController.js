@@ -103,9 +103,12 @@ const login = async (req, res) => {
       });
     }
 
-    // Intercept hardcoded admin login
-    if (email.toLowerCase() === "admin@shopsense.com") {
-      if (password !== "admin123") {
+    // Intercept admin login via env credentials
+    const adminEmail = (process.env.ADMIN_EMAIL || '').toLowerCase();
+    const adminPassword = process.env.ADMIN_PASSWORD || '';
+
+    if (adminEmail && email.toLowerCase() === adminEmail) {
+      if (password !== adminPassword) {
         return res.status(401).json({
           success: false,
           message: "Invalid email or password.",
@@ -113,12 +116,12 @@ const login = async (req, res) => {
       }
 
       // Ensure the admin user exists in the DB
-      let adminUser = await User.findOne({ email: "admin@shopsense.com" });
+      let adminUser = await User.findOne({ email: adminEmail });
       if (!adminUser) {
         adminUser = await User.create({
           fullName: "Admin",
-          email: "admin@shopsense.com",
-          password: "admin123", // Will be hashed by pre-save hook
+          email: adminEmail,
+          password: adminPassword, // Will be hashed by pre-save hook
           role: "admin",
         });
       } else if (adminUser.role !== "admin") {
@@ -205,7 +208,10 @@ const adminLogin = async (req, res) => {
       });
     }
 
-    if (email.toLowerCase() !== "admin@shopsense.com" || password !== "admin123") {
+    const adminEmail = (process.env.ADMIN_EMAIL || '').toLowerCase();
+    const adminPassword = process.env.ADMIN_PASSWORD || '';
+
+    if (!adminEmail || email.toLowerCase() !== adminEmail || password !== adminPassword) {
       return res.status(401).json({
         success: false,
         message: "Invalid admin credentials.",
@@ -213,12 +219,12 @@ const adminLogin = async (req, res) => {
     }
 
     // Ensure the admin user exists in the DB so that `protect` middleware can find it
-    let adminUser = await User.findOne({ email: "admin@shopsense.com" });
+    let adminUser = await User.findOne({ email: adminEmail });
     if (!adminUser) {
       adminUser = await User.create({
         fullName: "Admin",
-        email: "admin@shopsense.com",
-        password: "admin123", // Will be hashed by pre-save hook
+        email: adminEmail,
+        password: adminPassword, // Will be hashed by pre-save hook
         role: "admin",
       });
     } else if (adminUser.role !== "admin") {

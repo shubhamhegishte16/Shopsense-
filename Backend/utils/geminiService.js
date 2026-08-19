@@ -41,6 +41,16 @@ const RECEIPT_SCHEMA = {
             type: 'string',
             nullable: true,
           },
+          volumeOrWeight: {
+            type: 'number',
+            nullable: true,
+            description: 'The numerical amount of the weight/volume (e.g. 400 for 400g)'
+          },
+          unitType: {
+            type: 'string',
+            nullable: true,
+            description: 'The unit (e.g. "g", "kg", "ml", "L")'
+          },
         },
         required: [
           'name',
@@ -101,7 +111,8 @@ Rules:
    - Other
 
 5. Extract the brand when it can be reliably identified.
-6. If the brand cannot be identified, return null.
+6. Crucially, extract any weight or volume mentioned in the product name (e.g., if "Lays 400g", volumeOrWeight=400, unitType="g").
+7. If the brand or volume cannot be identified, return null.
 7. If a string field cannot be determined, return null.
 8. If a numeric field cannot be determined, return 0.
 9. Convert the receipt date to YYYY-MM-DD when possible.
@@ -306,7 +317,38 @@ Also, use Google Search to find a high-quality product image URL (must end in .j
   }
 }
 
+const CART_OPTIMIZER_PROMPT = `
+You are an expert AI Shopping Assistant. 
+Analyze the provided screenshot of a user's shopping cart (from an app like Blinkit, Zepto, Amazon, etc.).
+Extract the items they are about to buy and suggest cheaper alternatives or bulk-buy savings.
+Return a JSON array of items: { "name": "...", "price": ..., "suggestion": "...", "estimatedSavings": ... }
+`;
+
+async function analyzeCartImage(buffer, mimeType) {
+  try {
+    const base64Data = buffer.toString('base64');
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.5-flash-lite',
+      contents: [
+        {
+          parts: [
+            { text: CART_OPTIMIZER_PROMPT },
+            { inlineData: { mimeType, data: base64Data } },
+          ],
+        },
+      ],
+      config: { responseMimeType: 'application/json' },
+    });
+    
+    return JSON.parse(response.text);
+  } catch (error) {
+    console.error('Cart Analysis Error:', error);
+    throw new Error('Failed to analyze cart');
+  }
+}
+
 module.exports = {
   extractReceiptData,
-  compareProducts
+  compareProducts,
+  analyzeCartImage
 };

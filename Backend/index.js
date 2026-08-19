@@ -4,6 +4,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const connectDB = require("./config/db");
+const startRecallCron = require("./utils/recallCron");
 
 // ─── Connect to MongoDB ─────────────────────────────────────────────────────────
 connectDB();
@@ -80,4 +81,7 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 ShopSense AI Server running on http://localhost:${PORT}`);
   console.log(`📦 Environment: ${process.env.NODE_ENV || "development"}`);
+  
+  // Start background jobs
+  startRecallCron();
 });

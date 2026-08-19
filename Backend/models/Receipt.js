@@ -11,7 +11,9 @@ const receiptSchema = new mongoose.Schema({
     unitPrice: Number,
     totalPrice: Number,
     category: String, // e.g., 'Groceries', 'Electronics'
-    brand: String
+    brand: String,
+    volumeOrWeight: Number,
+    unitType: String
   }],
   subtotal: Number,
   taxes: Number,

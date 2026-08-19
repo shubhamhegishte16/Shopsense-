@@ -1,6 +1,8 @@
 const Receipt = require('../models/Receipt');
 const User = require('../models/User');
 const PantryItem = require('../models/PantryItem');
+const { analyzeCartImage } = require('../utils/geminiService');
+const fs = require('fs');
 
 exports.getOptimizerData = async (req, res) => {
   try {
@@ -289,5 +291,35 @@ exports.getOptimizerData = async (req, res) => {
   } catch (error) {
     console.error('Optimizer error:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch optimizer data' });
+  }
+};
+
+exports.analyzeCart = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No cart image provided' });
+    }
+
+    // Read file from disk since it was uploaded by multer
+    let buffer;
+    if (req.file.buffer) {
+        buffer = req.file.buffer;
+    } else if (req.file.path) {
+        buffer = fs.readFileSync(req.file.path);
+    } else {
+        return res.status(400).json({ success: false, message: 'Invalid file upload' });
+    }
+
+    const suggestions = await analyzeCartImage(buffer, req.file.mimetype);
+
+    // Clean up temp file if needed
+    if (req.file.path && fs.existsSync(req.file.path)) {
+       fs.unlinkSync(req.file.path);
+    }
+
+    res.json({ success: true, data: suggestions });
+  } catch (error) {
+    console.error('Cart Analysis Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to analyze cart.' });
   }
 };

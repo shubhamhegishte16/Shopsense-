@@ -43,24 +43,50 @@ exports.getDashboardData = async (req, res) => {
       receipt.items.forEach(item => {
         if (!item.name) return;
         const name  = item.name.trim().toLowerCase();
-        const price = item.unitPrice != null
+        let price = item.unitPrice != null
           ? item.unitPrice
           : item.totalPrice != null
             ? item.totalPrice / (item.quantity || 1)
             : null;
         if (price == null || isNaN(price)) return;
+        
+        // Shrinkflation: use price per 100g or 1L if weight available
+        let standardPrice = price;
+        let hasWeight = false;
+        if (item.volumeOrWeight && item.unitType) {
+            hasWeight = true;
+            // normalize to price per 100g or 100ml
+            const unit = item.unitType.toLowerCase();
+            let weight = item.volumeOrWeight;
+            if (unit === 'kg' || unit === 'l') weight *= 1000;
+            if (weight > 0) standardPrice = (price / weight) * 100; // price per 100 units
+        }
 
         if (!itemPrices[name]) {
-          itemPrices[name] = price;
+          itemPrices[name] = { price, standardPrice, hasWeight };
         } else if (!priceRadarMap[name]) {
-          const latestPrice = itemPrices[name];
-          const oldPrice    = price;
-          const up = latestPrice > oldPrice ? true : latestPrice < oldPrice ? false : null;
+          const latest = itemPrices[name];
+          const old = { price, standardPrice, hasWeight };
+          
+          let up = null;
+          let isShrinkflation = false;
+
+          // Pure shrinkflation: price is same or lower, but standard price is higher
+          if (latest.hasWeight && old.hasWeight && latest.standardPrice > old.standardPrice && latest.price <= old.price) {
+              up = true;
+              isShrinkflation = true;
+          } else if (latest.price > old.price) {
+              up = true; // Normal price hike
+          } else if (latest.price < old.price) {
+              up = false; // Price drop
+          }
+
           if (up !== null) {
             priceRadarMap[name] = {
               name:  item.name,
-              price: `₹${latestPrice.toFixed(0)}`,
-              up
+              price: `₹${latest.price.toFixed(0)}`,
+              up,
+              isShrinkflation
             };
           }
         }
@@ -88,15 +114,41 @@ exports.getDashboardData = async (req, res) => {
     const thisScore = dnaScore(thisMonth.totalSpent, thisMonth.totalSaved);
     const lastScore = dnaScore(lastMonth.totalSpent, lastMonth.totalSaved);
 
+    // Calculate category breakdown
+    const categoryTotals = {};
+    let totalItems = 0;
+    
+    thisMonthReceipts.forEach(r => {
+      if (!r.items) return;
+      r.items.forEach(item => {
+        const cat = item.category || 'Other';
+        categoryTotals[cat] = (categoryTotals[cat] || 0) + 1;
+        totalItems++;
+      });
+    });
+
+    const categoryBreakdown = Object.entries(categoryTotals)
+      .map(([category, count]) => ({
+        category,
+        percentage: Math.round((count / Math.max(totalItems, 1)) * 100)
+      }))
+      .sort((a, b) => b.percentage - a.percentage);
+
+    // Dynamic Persona Logic
     let persona = 'Casual Shopper';
+    const topCategory = categoryBreakdown[0]?.category?.toLowerCase() || '';
+
     if (thisScore >= 80) persona = 'Bargain Hunter';
+    else if (topCategory.includes('produce') || topCategory.includes('vegetables') || topCategory.includes('health')) persona = 'Health Nut';
+    else if (topCategory.includes('electronics') || topCategory.includes('tech')) persona = 'Tech Enthusiast';
     else if (thisScore >= 65) persona = 'Budget Conscious';
     else if (thisScore >= 55) persona = 'Smart Buyer';
 
     const shoppingDNA = {
       score:        thisScore,
       persona,
-      pointsChange: thisScore - lastScore
+      pointsChange: thisScore - lastScore,
+      categoryBreakdown
     };
 
     // ─── 4. AI Savings ────────────────────────────────────────────────────

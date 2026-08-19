@@ -60,6 +60,14 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    employeeId: {
+      type: String,
+      trim: true,
+    },
+    department: {
+      type: String,
+      trim: true,
+    },
     location: {
       type: String,
       trim: true,
@@ -82,7 +90,8 @@ const userSchema = new mongoose.Schema(
         language:    { type: String, default: 'English' },
         theme:       { type: String, enum: ['Light', 'Dark', 'System'], default: 'Light' },
         currency:    { type: String, default: 'INR (₹)' },
-        dateFormat:  { type: String, default: 'DD MMM YYYY' },
+        dateFormat:  { type: String, default: 'DD MMM, YYYY' },
+        timeFormat:  { type: String, default: '12 Hours (AM/PM)' },
         weightUnit:  { type: String, default: 'Kilogram (kg)' },
         volumeUnit:  { type: String, default: 'Liter (L)' },
         distanceUnit:{ type: String, default: 'Kilometer (km)' },
@@ -152,6 +161,25 @@ const userSchema = new mongoose.Schema(
     lastLogin: {
       type: Date,
       default: null,
+    },
+    loginHistory: {
+      type: [{
+        ip: { type: String },
+        userAgent: { type: String },
+        loginTime: { type: Date, default: Date.now },
+      }],
+      default: [],
+    },
+    activeSessions: {
+      type: [{
+        device: { type: String },
+        os: { type: String },
+        browser: { type: String },
+        ip: { type: String },
+        lastActive: { type: Date, default: Date.now },
+        isCurrent: { type: Boolean, default: false },
+      }],
+      default: [],
     },
   },
   {

@@ -19,4 +19,6 @@ router.route('/issues')
 router.route('/issues/:id')
   .delete(communityController.deleteIssue);
 
+router.get('/prices', communityController.getCommunityStorePrices);
+
 module.exports = router;
