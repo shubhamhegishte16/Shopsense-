@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   BarChart3,
   Bell,
@@ -49,10 +49,17 @@ function NavLinkItem({ item, currentPath, compact = false, onClick }) {
 
 export default function AdminSidebar() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const width = useWindowWidth();
   const mobile = isMobile(width);
   const tablet = isTablet(width);
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem('shopsense_token');
+    localStorage.removeItem('shopsense_user');
+    navigate('/login');
+  };
 
   if (mobile) {
     return (
@@ -111,7 +118,7 @@ export default function AdminSidebar() {
             <NavLinkItem key={item.id} item={item} currentPath={pathname} compact />
           ))}
         </nav>
-        <div className="admin-sidebar-avatar">A</div>
+        <div className="admin-sidebar-avatar" onClick={handleLogout} style={{ cursor: 'pointer' }} title="Log out">A</div>
       </aside>
     );
   }
@@ -148,7 +155,7 @@ export default function AdminSidebar() {
         </Link>
         <div className="admin-sidebar-actions">
           <button className="admin-icon-btn" type="button" aria-label="Notifications"><Bell size={18} /></button>
-          <button className="admin-icon-btn" type="button" aria-label="Log out"><LogOut size={18} /></button>
+          <button className="admin-icon-btn" type="button" aria-label="Log out" onClick={handleLogout}><LogOut size={18} /></button>
         </div>
       </div>
     </aside>

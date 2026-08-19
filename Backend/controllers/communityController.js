@@ -1,5 +1,6 @@
 const CommunityMessage = require('../models/CommunityMessage');
 const IssueReport = require('../models/IssueReport');
+const Receipt = require('../models/Receipt');
 
 exports.getCommunityMessages = async (req, res) => {
   try {
@@ -120,5 +121,52 @@ exports.deleteIssue = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+
+exports.getCommunityStorePrices = async (req, res) => {
+  try {
+    // Aggregate receipt items across ALL users
+    // Group by store name and calculate average totalAmount per receipt
+    const storeStats = await Receipt.aggregate([
+      { $match: { status: 'processed', storeName: { $exists: true, $ne: null } } },
+      { $group: {
+          _id: "$storeName",
+          avgSpend: { $avg: "$totalAmount" },
+          receiptCount: { $sum: 1 }
+      }},
+      { $match: { receiptCount: { $gte: 2 } } }, // only stores with multiple receipts
+      { $sort: { avgSpend: 1 } },
+      { $limit: 3 }
+    ]);
+
+    const formattedStores = storeStats.map((store, idx) => {
+      let tag = 'Cheapest';
+      let tagColor = '#10B981';
+      let tagBg = '#D1FAE5';
+
+      if (idx > 0) {
+        tag = `+₹${Math.round(store.avgSpend - storeStats[0].avgSpend)}`;
+        tagColor = '#EF4444';
+        tagBg = '#FEE2E2';
+      }
+
+      return {
+        name: store._id,
+        price: `₹${Math.round(store.avgSpend)} avg`,
+        tag,
+        tagColor,
+        tagBg,
+        connected: false
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      data: formattedStores
+    });
+  } catch (error) {
+    console.error('Community Prices Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch community store prices' });
   }
 };

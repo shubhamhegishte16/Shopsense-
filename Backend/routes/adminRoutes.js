@@ -5,6 +5,12 @@ const { protect, restrictTo } = require('../middleware/auth');
 
 router.use(protect, restrictTo('admin'));
 
+// Dashboard
+router.get('/dashboard-stats', adminController.getDashboardStats);
+
+// Reports & Analytics
+router.get('/reports-analytics', adminController.getReportsAnalytics);
+
 router.get('/users', adminController.getUsers);
 router.get('/users/:userId', adminController.getUserDetails);
 router.get('/users/:userId/latest-receipt', adminController.getUserLatestReceipt);
@@ -35,5 +41,11 @@ router.get('/notifications', adminController.getAdminNotifications);
 router.post('/notifications/mark-all-read', adminController.markAllAdminNotificationsRead);
 router.patch('/notifications/:id/read', adminController.markAdminNotificationRead);
 router.delete('/notifications/:id', adminController.deleteAdminNotification);
+
+// Admin Profile
+router.get('/profile', adminController.getAdminProfile);
+router.put('/profile', adminController.updateAdminProfile);
+router.put('/profile/preferences', adminController.updateAdminPreferences);
+router.put('/profile/password', adminController.changeAdminPassword);
 
 module.exports = router;
