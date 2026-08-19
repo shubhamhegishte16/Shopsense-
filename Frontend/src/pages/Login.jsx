@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import ParticleText from '../components/originkit/ui/particle-text'
 import MagneticButton from '../components/originkit/ui/magnetic-button'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+const API_URL = import.meta.env.VITE_API_URL || ''
 
 export default function Login() {
   const navigate = useNavigate()

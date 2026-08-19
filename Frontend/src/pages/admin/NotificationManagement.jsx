@@ -148,7 +148,7 @@ export default function NotificationManagement() {
   const fetchNotifications = async () => {
     try {
       const token = localStorage.getItem('shopsense_token');
-      const res = await axios.get('http://localhost:5000/api/admin/notifications', {
+      const res = await axios.get('/api/admin/notifications', {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
@@ -167,7 +167,7 @@ export default function NotificationManagement() {
   const markRead = async (id) => {
     try {
       const token = localStorage.getItem('shopsense_token');
-      await axios.patch(`http://localhost:5000/api/admin/notifications/${id}/read`, {}, {
+      await axios.patch(`/api/admin/notifications/${id}/read`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchNotifications();
@@ -179,7 +179,7 @@ export default function NotificationManagement() {
   const markAllRead = async () => {
     try {
       const token = localStorage.getItem('shopsense_token');
-      await axios.post(`http://localhost:5000/api/admin/notifications/mark-all-read`, {}, {
+      await axios.post(`/api/admin/notifications/mark-all-read`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchNotifications();
@@ -191,7 +191,7 @@ export default function NotificationManagement() {
   const deleteNotification = async (id) => {
     try {
       const token = localStorage.getItem('shopsense_token');
-      await axios.delete(`http://localhost:5000/api/admin/notifications/${id}`, {
+      await axios.delete(`/api/admin/notifications/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (selected && selected._id === id) {

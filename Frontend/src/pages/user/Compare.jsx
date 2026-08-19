@@ -58,7 +58,7 @@ export default function Compare() {
 
     try {
       const token = localStorage.getItem('shopsense_token');
-      const res = await axios.post('http://localhost:5000/api/compare/search-stores', {
+      const res = await axios.post('/api/compare/search-stores', {
         productName: formName,
         brand: formBrand,
         category: formCategory,

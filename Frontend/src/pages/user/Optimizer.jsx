@@ -10,23 +10,69 @@ import {
   StoreOptimizerPanel,
   BudgetPlannerPanel
 } from '../../components/User/OptimizerWidgets';
+import { Camera, X, Loader2 } from 'lucide-react';
 
 export default function Optimizer() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // Cart analysis state
+  const [cartFile, setCartFile] = useState(null);
+  const [cartPreview, setCartPreview] = useState(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [cartSuggestions, setCartSuggestions] = useState(null);
+
+  const handleCartUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setCartFile(file);
+    setCartPreview(URL.createObjectURL(file));
+    setCartSuggestions(null);
+    setAnalyzing(true);
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const token = localStorage.getItem('shopsense_token');
+      const res = await axios.post('/api/optimizer/analyze-cart', formData, {
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+      });
+      if (res.data.success) {
+        setCartSuggestions(res.data.data);
+      }
+    } catch (err) {
+      console.error('Cart upload failed', err);
+      alert('Failed to analyze cart. Please try again.');
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const clearCart = () => {
+    setCartFile(null);
+    setCartPreview(null);
+    setCartSuggestions(null);
+  };
 
   useEffect(() => {
     const fetchOptimizerData = async () => {
       try {
         const token = localStorage.getItem('shopsense_token');
-        const res = await axios.get('http://localhost:5000/api/optimizer', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.data.success) {
-          setData(res.data.data);
+        const [optRes, comRes] = await Promise.all([
+          axios.get('/api/optimizer', { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get('/api/community/prices', { headers: { Authorization: `Bearer ${token}` } })
+        ]);
+
+        if (optRes.data.success) {
+          const optimizerData = optRes.data.data;
+          if (comRes.data.success) {
+            optimizerData.stores = comRes.data.data;
+          }
+          setData(optimizerData);
         }
       } catch (err) {
-        console.error('Failed to fetch optimizer data', err);
+        console.error('Failed to fetch data', err);
       } finally {
         setLoading(false);
       }
@@ -82,6 +128,55 @@ export default function Optimizer() {
 
             {/* Left: Main Content */}
             <div style={{ flex: 1 }}>
+              
+              {/* Pre-Purchase Cart Optimizer */}
+              <div style={{ background: '#FFF', border: '1px solid #E2E8F0', borderRadius: 24, padding: 24, marginBottom: 32, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                  <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#0F172A' }}>Pre-Purchase Cart Optimizer</h3>
+                  {cartPreview && (
+                    <button onClick={clearCart} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}>
+                      <X size={20} />
+                    </button>
+                  )}
+                </div>
+                
+                {!cartPreview ? (
+                  <div style={{ border: '2px dashed #CBD5E1', borderRadius: 16, padding: '32px 20px', textAlign: 'center', background: '#F8FAFC', cursor: 'pointer' }} onClick={() => document.getElementById('cart-upload').click()}>
+                    <Camera size={32} color="#94A3B8" style={{ margin: '0 auto 12px' }} />
+                    <p style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 600, color: '#334155' }}>Upload Cart Screenshot</p>
+                    <p style={{ margin: 0, fontSize: 13, color: '#64748B' }}>Analyze your Amazon/Blinkit cart before paying</p>
+                    <input id="cart-upload" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleCartUpload} />
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+                    <img src={cartPreview} alt="Cart" style={{ width: 120, height: 'auto', borderRadius: 12, objectFit: 'cover', border: '1px solid #E2E8F0' }} />
+                    <div style={{ flex: 1, minWidth: 250 }}>
+                      {analyzing ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, height: '100%', color: '#10B981', fontWeight: 600 }}>
+                          <Loader2 className="spin" size={20} /> Analyzing items & finding alternatives...
+                        </div>
+                      ) : (
+                        <div>
+                          <h4 style={{ margin: '0 0 12px', fontSize: 15, color: '#0F172A' }}>AI Suggestions</h4>
+                          {cartSuggestions?.length > 0 ? (
+                            <ul style={{ paddingLeft: 20, margin: 0, color: '#334155', fontSize: 14 }}>
+                              {cartSuggestions.map((s, i) => (
+                                <li key={i} style={{ marginBottom: 8 }}>
+                                  <strong>{s.name}</strong>: {s.suggestion} <span style={{ color: '#10B981', fontWeight: 600 }}>(Save ~₹{s.estimatedSavings})</span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p style={{ margin: 0, color: '#64748B', fontSize: 14 }}>Your cart looks fully optimized! No cheaper alternatives found.</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                <style>{`.spin { animation: spin 1s linear infinite; }`}</style>
+              </div>
+
               <OptimizerHero data={data} />
               <InsightCards cards={data?.insightCards} />
               <BottomSection recommendations={data?.recommendations} reorders={data?.reorders} />

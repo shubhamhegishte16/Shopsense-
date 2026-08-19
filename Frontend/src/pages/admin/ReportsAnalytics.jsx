@@ -7,7 +7,7 @@ import {
 import AdminLayout from '../../components/Admin/AdminLayout';
 import { AdminButton, AdminStatCard, TablePagination } from '../../components/Admin/AdminUI';
 
-const API_BASE = 'http://localhost:5000/api/admin';
+const API_BASE = '/api/admin';
 
 function getAuthHeaders() {
   const token = localStorage.getItem('shopsense_token');

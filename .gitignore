@@ -88,3 +88,6 @@ gcloud-credentials*.json
 *.pid
 *.seed
 *.pid.lock
+
+# ─── Custom ────────────────────────────────────────────────
+.agents/

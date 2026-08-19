@@ -22,7 +22,7 @@ export default function Dashboard() {
     const fetchDashboardData = async () => {
       try {
         const token = localStorage.getItem('shopsense_token');
-        const res = await axios.get('http://localhost:5000/api/dashboard', {
+        const res = await axios.get('/api/dashboard', {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.data.success) {

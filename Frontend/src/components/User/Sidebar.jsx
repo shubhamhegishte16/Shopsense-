@@ -15,8 +15,9 @@ import {
   UsersRound,
   X,
   Zap,
+  LogOut,
 } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import useWindowWidth, { isMobile, isTablet } from '../../hooks/useWindowWidth';
 
 const navItems = [
@@ -56,10 +57,17 @@ function NavItem({ item, currentPath, compact = false, onClick }) {
 
 export default function Sidebar() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const width = useWindowWidth();
   const mobile = isMobile(width);
   const tablet = isTablet(width);
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem('shopsense_token');
+    localStorage.removeItem('shopsense_user');
+    navigate('/login');
+  };
 
   if (mobile) {
     return (
@@ -142,9 +150,7 @@ export default function Sidebar() {
             <NavItem key={item.id} item={item} currentPath={pathname} compact />
           ))}
         </nav>
-        <Link to="/profile" className="user-sidebar-avatar-link">
-          <div className="user-sidebar-avatar">S</div>
-        </Link>
+        <div className="user-sidebar-avatar" onClick={handleLogout} style={{ cursor: 'pointer' }} title="Log out">S</div>
       </aside>
     );
   }
@@ -182,6 +188,10 @@ export default function Sidebar() {
           </span>
           <ChevronRight size={17} />
         </Link>
+        <div className="user-sidebar-actions" style={{ display: 'flex', gap: '4px' }}>
+          <button className="user-icon-btn" type="button" aria-label="Notifications"><Bell size={18} /></button>
+          <button className="user-icon-btn" type="button" aria-label="Log out" onClick={handleLogout}><LogOut size={18} /></button>
+        </div>
       </div>
     </aside>
   );

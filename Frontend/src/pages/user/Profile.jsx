@@ -12,7 +12,7 @@ import {
   Clock
 } from 'lucide-react';
 
-const API = 'http://localhost:5000';
+const API = '';
 const getToken = () => localStorage.getItem('shopsense_token');
 
 // ─── Tabs (no Connected Accounts) ────────────────────────────────────────────

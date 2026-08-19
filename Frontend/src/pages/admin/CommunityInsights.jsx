@@ -116,8 +116,8 @@ export default function CommunityInsights() {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [issueRes, msgRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/admin/community/issues', { headers }),
-        axios.get('http://localhost:5000/api/admin/community/messages', { headers }),
+        axios.get('/api/admin/community/issues', { headers }),
+        axios.get('/api/admin/community/messages', { headers }),
       ]);
 
       if (issueRes.data.success) setIssues(issueRes.data.data.issues);
@@ -186,7 +186,7 @@ export default function CommunityInsights() {
     if (!newMessage.trim()) return;
     try {
       const token = localStorage.getItem('shopsense_token');
-      await axios.post('http://localhost:5000/api/admin/community/messages', { content: newMessage }, {
+      await axios.post('/api/admin/community/messages', { content: newMessage }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setNewMessage('');
@@ -200,7 +200,7 @@ export default function CommunityInsights() {
   const handleUpdateIssue = async (issueId, status) => {
     try {
       const token = localStorage.getItem('shopsense_token');
-      await axios.patch(`http://localhost:5000/api/admin/community/issues/${issueId}`, { status }, {
+      await axios.patch(`/api/admin/community/issues/${issueId}`, { status }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchData();

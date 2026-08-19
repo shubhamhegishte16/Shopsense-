@@ -15,7 +15,7 @@ import Profile from './pages/user/Profile'
 import Settings from './pages/user/Settings'
 import Notifications from './pages/user/Notifications'
 import AdminDashboard from './pages/admin/AdminDashboard'
-import AdminLogin from './pages/admin/AdminLogin'
+
 import UserManagement from './pages/admin/UserManagement'
 import ReceiptManagement from './pages/admin/ReceiptManagement'
 import ProductDatabase from './pages/admin/ProductDatabase'
@@ -47,7 +47,7 @@ export default function App() {
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/:section" element={<Settings />} />
           <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
+
           <Route path="/admin/users" element={<UserManagement />} />
           <Route path="/admin/receipts" element={<ReceiptManagement />} />
           <Route path="/admin/products" element={<ProductDatabase />} />

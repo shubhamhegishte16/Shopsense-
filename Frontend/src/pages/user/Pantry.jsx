@@ -3,7 +3,7 @@ import { Search, Bell, RotateCw } from 'lucide-react';
 import Sidebar from '../../components/User/Sidebar';
 import { PantryStats, CategoryTabs, PantryControls, PantryGrid, ExpiryCalendarPanel, SmartAlertsPanel, PantryInsightsPanel } from '../../components/User/PantryWidgets';
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = '/api';
 
 function getAuthHeaders() {
   const token = localStorage.getItem('shopsense_token');

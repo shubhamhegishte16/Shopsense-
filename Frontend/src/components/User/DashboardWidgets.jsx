@@ -14,7 +14,6 @@ export function DashboardTopNav({ titleNode }) {
   const navigate = useNavigate();
   const width = useWindowWidth();
   const mobile = isMobile(width);
-  const [searchOpen, setSearchOpen] = useState(false);
 
   return (
     <div style={{
@@ -25,58 +24,26 @@ export function DashboardTopNav({ titleNode }) {
       width: '100%', boxSizing: 'border-box'
     }}>
       {mobile ? (
-        <>
-          {searchOpen ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', background: '#FFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '9px 12px', flex: 1 }}>
-                <Search size={16} color="#94A3B8" />
-                <input type="text" placeholder="Search..." autoFocus
-                  style={{ border: 'none', outline: 'none', background: 'transparent', marginLeft: 8, width: '100%', fontSize: 14, color: '#0F172A', fontFamily: "'Inter', sans-serif" }}
-                />
-              </div>
-              <button onClick={() => setSearchOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
-                <X size={20} color="#64748B" />
-              </button>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: 1 }}>
-              <span style={{ fontSize: 17, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>ShopSense</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <button onClick={() => setSearchOpen(true)} style={iconBtn}>
-                  <Search size={17} color="#334155" />
-                </button>
-                <button onClick={() => navigate('/notifications')} style={{ ...iconBtn, position: 'relative' }}>
-                  <Bell size={17} color="#334155" />
-                  <div style={{ position: 'absolute', top: 9, right: 11, width: 7, height: 7, background: '#10B981', borderRadius: '50%', border: '2px solid #FFF' }} />
-                </button>
-              </div>
-            </div>
-          )}
-        </>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-          {/* Top Row: Title + Icons */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: titleNode ? 24 : 0, width: '100%' }}>
-            <div>{titleNode}</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <button onClick={() => navigate('/notifications')} style={{ ...iconBtn44, position: 'relative' }}>
-                <Bell size={20} color="#334155" />
-                <div style={{ position: 'absolute', top: 10, right: 12, width: 8, height: 8, background: '#10B981', borderRadius: '50%', border: '2px solid #FFF' }} />
-              </button>
-              <button onClick={() => navigate('/settings')} style={iconBtn44}>
-                <Settings size={20} color="#334155" />
-              </button>
-            </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: 1 }}>
+          <span style={{ fontSize: 17, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>ShopSense</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button onClick={() => navigate('/notifications')} style={{ ...iconBtn, position: 'relative' }}>
+              <Bell size={17} color="#334155" />
+              <div style={{ position: 'absolute', top: 9, right: 11, width: 7, height: 7, background: '#10B981', borderRadius: '50%', border: '2px solid #FFF' }} />
+            </button>
           </div>
-          {/* Search Row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 16, padding: '10px 16px', width: '100%', maxWidth: 480, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-              <Search size={20} color="#94A3B8" />
-              <input type="text" placeholder="Search for products, brands or insights..."
-                style={{ border: 'none', outline: 'none', background: 'transparent', marginLeft: 12, width: '100%', fontSize: 14, color: '#0F172A', fontFamily: "'Inter', sans-serif" }}
-              />
-              <div style={{ background: '#F1F5F9', padding: '4px 8px', borderRadius: 6, fontSize: 12, fontWeight: 600, color: '#64748B', letterSpacing: 1 }}>⌘ K</div>
-            </div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+          <div>{titleNode}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <button onClick={() => navigate('/notifications')} style={{ ...iconBtn44, position: 'relative' }}>
+              <Bell size={20} color="#334155" />
+              <div style={{ position: 'absolute', top: 10, right: 12, width: 8, height: 8, background: '#10B981', borderRadius: '50%', border: '2px solid #FFF' }} />
+            </button>
+            <button onClick={() => navigate('/settings')} style={iconBtn44}>
+              <Settings size={20} color="#334155" />
+            </button>
           </div>
         </div>
       )}
@@ -159,7 +126,7 @@ function TagIcon(props) {
 
 // ─── Shopping DNA Card ─────────────────────────────────────────────────────
 export function ShoppingDNACard({ data }) {
-  const { score = 50, persona = 'Casual Shopper', pointsChange = 0 } = data || {};
+  const { score = 50, persona = 'Casual Shopper', pointsChange = 0, categoryBreakdown = [] } = data || {};
   const width = useWindowWidth();
   const mobile = isMobile(width);
   const positive = pointsChange >= 0;
@@ -178,9 +145,24 @@ export function ShoppingDNACard({ data }) {
         {positive ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
         {Math.abs(pointsChange)} pts <span style={{ color: '#94A3B8' }}>vs last month</span>
       </div>
-      <div style={{ height: 60, marginTop: 24, position: 'relative' }}>
-        <svg width="100%" height="100%" viewBox="0 0 200 60" preserveAspectRatio="none">
-          <path d="M0 60 Q 50 20 100 40 T 200 10" fill="none" stroke="#10B981" strokeWidth="3" strokeLinecap="round" />
+      
+      {/* Category Breakdown (Ponytail: Keep it minimal) */}
+      {categoryBreakdown.length > 0 && (
+        <div style={{ marginTop: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', marginBottom: 8, textTransform: 'uppercase' }}>Top Categories</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {categoryBreakdown.slice(0, 3).map((cat, idx) => (
+              <div key={idx} style={{ fontSize: 11, background: '#F1F5F9', color: '#475569', padding: '4px 8px', borderRadius: 6, fontWeight: 600 }}>
+                {cat.category}: {cat.percentage}%
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div style={{ height: 40, marginTop: 16, position: 'relative' }}>
+        <svg width="100%" height="100%" viewBox="0 0 200 40" preserveAspectRatio="none">
+          <path d="M0 40 Q 50 10 100 25 T 200 5" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" />
         </svg>
       </div>
     </div>
@@ -266,7 +248,12 @@ export function PriceRadarCard({ data }) {
         ) : (
           items.map((item, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 13, color: '#334155', fontWeight: 500 }}>{item.name}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 13, color: '#334155', fontWeight: 500 }}>{item.name}</span>
+                {item.isShrinkflation && (
+                  <span style={{ background: '#FEF2F2', color: '#EF4444', fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>SHRINKFLATION</span>
+                )}
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: item.up ? '#EF4444' : '#10B981', fontSize: 13, fontWeight: 700 }}>
                 {item.up ? <ArrowUp size={14} /> : <ArrowDown size={14} />} {item.price}
               </div>

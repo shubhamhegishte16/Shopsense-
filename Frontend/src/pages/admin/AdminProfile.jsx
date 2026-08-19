@@ -65,7 +65,7 @@ export default function AdminProfile() {
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem('shopsense_token');
-      const res = await axios.get('http://localhost:5000/api/admin/profile', {
+      const res = await axios.get('/api/admin/profile', {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
@@ -115,7 +115,7 @@ export default function AdminProfile() {
   const saveInfo = async () => {
     try {
       const token = localStorage.getItem('shopsense_token');
-      await axios.put('http://localhost:5000/api/admin/profile', infoForm, {
+      await axios.put('/api/admin/profile', infoForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchProfile();
@@ -129,7 +129,7 @@ export default function AdminProfile() {
   const savePreferences = async () => {
     try {
       const token = localStorage.getItem('shopsense_token');
-      await axios.put('http://localhost:5000/api/admin/profile/preferences', prefForm, {
+      await axios.put('/api/admin/profile/preferences', prefForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setTheme(prefForm.theme);
@@ -152,7 +152,7 @@ export default function AdminProfile() {
 
     try {
       const token = localStorage.getItem('shopsense_token');
-      const res = await axios.put('http://localhost:5000/api/admin/profile/password', {
+      const res = await axios.put('/api/admin/profile/password', {
         currentPassword: passwordForm.currentPassword,
         newPassword: passwordForm.newPassword
       }, {

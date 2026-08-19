@@ -24,7 +24,7 @@ export default function Insights() {
       setLoading(true);
       try {
         const token = localStorage.getItem('shopsense_token');
-        const res = await axios.get('http://localhost:5000/api/insights', {
+        const res = await axios.get('/api/insights', {
           headers: { Authorization: `Bearer ${token}` },
           params: { period }
         });

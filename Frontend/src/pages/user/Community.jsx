@@ -69,7 +69,7 @@ export default function Community() {
   const fetchCommunityData = async () => {
     try {
       const token = localStorage.getItem('shopsense_token');
-      const msgRes = await axios.get('http://localhost:5000/api/community/messages', {
+      const msgRes = await axios.get('/api/community/messages', {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (msgRes.data.status === 'success') {
@@ -89,7 +89,7 @@ export default function Community() {
         setMessages(fetchedMsgs.reverse());
       }
 
-      const issueRes = await axios.get('http://localhost:5000/api/community/issues', {
+      const issueRes = await axios.get('/api/community/issues', {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (issueRes.data.status === 'success') {
@@ -128,7 +128,7 @@ export default function Community() {
 
     try {
       const token = localStorage.getItem('shopsense_token');
-      await axios.post('http://localhost:5000/api/community/messages', { content: text }, {
+      await axios.post('/api/community/messages', { content: text }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMessageText('');
@@ -147,7 +147,7 @@ export default function Community() {
 
     try {
       const token = localStorage.getItem('shopsense_token');
-      await axios.post('http://localhost:5000/api/community/issues', { 
+      await axios.post('/api/community/issues', { 
         issueDescription: `[${issueForm.category}] ${title} - ${details}`
       }, {
         headers: { Authorization: `Bearer ${token}` }
@@ -164,7 +164,7 @@ export default function Community() {
   async function handleDeleteMessage(id) {
     try {
       const token = localStorage.getItem('shopsense_token');
-      await axios.delete(`http://localhost:5000/api/community/messages/${id}`, {
+      await axios.delete(`/api/community/messages/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchCommunityData();
@@ -177,7 +177,7 @@ export default function Community() {
   async function handleDeleteIssue(id) {
     try {
       const token = localStorage.getItem('shopsense_token');
-      await axios.delete(`http://localhost:5000/api/community/issues/${id}`, {
+      await axios.delete(`/api/community/issues/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchCommunityData();

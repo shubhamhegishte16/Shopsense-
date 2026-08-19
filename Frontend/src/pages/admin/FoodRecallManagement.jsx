@@ -237,7 +237,7 @@ export default function FoodRecallManagement() {
 
   const fetchRecalls = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/admin/community/food-recalls', authHeaders());
+      const res = await axios.get('/api/admin/community/food-recalls', authHeaders());
       if (res.data.success) {
         setRecalls(res.data.data.recalls);
       }
@@ -249,7 +249,7 @@ export default function FoodRecallManagement() {
   const handleAddRecall = async (event) => {
     event.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/admin/community/food-recalls', form, authHeaders());
+      await axios.post('/api/admin/community/food-recalls', form, authHeaders());
       setPanelMode('closed');
       setForm(initialRecallForm);
       fetchRecalls();
@@ -262,7 +262,7 @@ export default function FoodRecallManagement() {
   const handleEditRecall = async (event) => {
     event.preventDefault();
     try {
-      await axios.put(`http://localhost:5000/api/admin/community/food-recalls/${editingRecallId}`, form, authHeaders());
+      await axios.put(`/api/admin/community/food-recalls/${editingRecallId}`, form, authHeaders());
       setPanelMode('closed');
       setEditingRecallId(null);
       setForm(initialRecallForm);
@@ -276,7 +276,7 @@ export default function FoodRecallManagement() {
   const handleDeleteRecall = async (recall) => {
     if (!window.confirm(`Are you sure you want to remove the recall "${recall.recallId} - ${recall.product}"?\n\nAll users will be notified that this was a false recall.`)) return;
     try {
-      await axios.delete(`http://localhost:5000/api/admin/community/food-recalls/${recall._id}`, authHeaders());
+      await axios.delete(`/api/admin/community/food-recalls/${recall._id}`, authHeaders());
       // If the deleted recall was being viewed, close the panel
       if (selectedRecall && selectedRecall._id === recall._id) {
         setSelectedRecall(null);

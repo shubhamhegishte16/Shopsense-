@@ -9,7 +9,7 @@ export function useTheme() {
 }
 
 const LS_KEY = 'shopsense_theme';
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = '/api';
 
 function getAuthHeaders() {
   const token = localStorage.getItem('shopsense_token');

@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import Sidebar from '../../components/User/Sidebar';
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = '/api';
 
 function getAuthHeaders() {
   const token = localStorage.getItem('shopsense_token');

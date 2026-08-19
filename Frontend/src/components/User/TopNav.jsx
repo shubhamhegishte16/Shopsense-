@@ -115,9 +115,6 @@ export default function TopNav({ showReceiptFilters = false, titleNode }) {
                 placeholder={showReceiptFilters ? 'Search receipts, stores...' : 'Search for products, brands or insights...'}
                 style={{ border: 'none', outline: 'none', background: 'transparent', marginLeft: 12, width: '100%', fontSize: 14, color: '#0F172A', fontFamily: "'Inter', sans-serif" }}
               />
-              {!showReceiptFilters && (
-                <div style={{ background: '#F1F5F9', padding: '4px 8px', borderRadius: 6, fontSize: 12, fontWeight: 600, color: '#64748B', letterSpacing: 1 }}>⌘ K</div>
-              )}
             </div>
 
             {showReceiptFilters && (

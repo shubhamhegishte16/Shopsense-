@@ -3,7 +3,7 @@ import { Upload, ChevronDown, MoreVertical, Loader2, Check, AlertCircle, Refresh
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import useWindowWidth, { isMobile } from '../../hooks/useWindowWidth';
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = '/api';
 
 function getAuthHeaders() {
   const token = localStorage.getItem('shopsense_token');
