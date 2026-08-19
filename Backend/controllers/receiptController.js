@@ -4,6 +4,7 @@ const PantryItem = require('../models/PantryItem');
 const { extractReceiptData } = require('../utils/geminiService');
 const { uploadToCloudinary } = require('../config/cloudinary');
 const Notification = require('../models/Notification');
+const AdminNotification = require('../models/AdminNotification');
 
 exports.uploadReceipt = async (req, res) => {
   try {
@@ -77,6 +78,22 @@ exports.uploadReceipt = async (req, res) => {
       relatedId: savedReceipt._id
     });
 
+    // Admin notification: new receipt scanned
+    try {
+      const userName = req.user.fullName || 'A user';
+      await AdminNotification.create({
+        title: 'New Receipt Scanned',
+        message: `${userName} uploaded a receipt from ${extractedData.storeName || 'a store'} with ${extractedData.items?.length || 0} items (₹${extractedData.totalAmount || 0}).`,
+        type: 'new_receipt',
+        priority: 'Low',
+        relatedModel: 'Receipt',
+        relatedId: savedReceipt._id,
+        metadata: { userName, storeName: extractedData.storeName, totalAmount: extractedData.totalAmount, itemCount: extractedData.items?.length || 0 },
+      });
+    } catch (notifErr) {
+      console.error('Failed to create admin notification for receipt:', notifErr.message);
+    }
+
     // 5. Process Products and Pantry — per-item error isolation
     const items = extractedData.items || [];
     for (const item of items) {
@@ -96,6 +113,21 @@ exports.uploadReceipt = async (req, res) => {
             category: item.category || 'Other',
             brand: item.brand || null
           });
+
+          // Admin notification: new product added to database
+          try {
+            await AdminNotification.create({
+              title: 'New Product in Database',
+              message: `"${item.name}" (${item.category || 'Other'}) was auto-added from a scanned receipt.`,
+              type: 'new_product',
+              priority: 'Low',
+              relatedModel: 'Product',
+              relatedId: product._id,
+              metadata: { productName: item.name, category: item.category, brand: item.brand },
+            });
+          } catch (notifErr) {
+            console.error('Failed to create admin notification for new product:', notifErr.message);
+          }
         }
         await PantryItem.create({
           userId,

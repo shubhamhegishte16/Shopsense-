@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const User = require('../models/User');
 const Receipt = require('../models/Receipt');
 const Notification = require('../models/Notification');
+const AdminNotification = require('../models/AdminNotification');
 
 function escapeRegex(value = '') {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -255,6 +256,21 @@ exports.createProduct = async (req, res) => {
       defaultUnit: defaultUnit || ''
     });
 
+    // Admin notification: new product added manually
+    try {
+      await AdminNotification.create({
+        title: 'New Product Added',
+        message: `"${name}" (${brand || 'Unknown'}, ${category || 'Uncategorized'}) was added to the product database.`,
+        type: 'new_product',
+        priority: 'Low',
+        relatedModel: 'Product',
+        relatedId: product._id,
+        metadata: { productName: name, brand, category },
+      });
+    } catch (notifErr) {
+      console.error('Failed to create admin notification for new product:', notifErr.message);
+    }
+
     res.status(201).json({ success: true, product });
   } catch (error) {
     console.error('Admin createProduct error:', error);
@@ -347,6 +363,71 @@ exports.postAdminMessage = async (req, res) => {
   }
 };
 
+// ─── Admin Notifications ────────────────────────────────────────────────────
+
+exports.getAdminNotifications = async (req, res) => {
+  try {
+    const notifications = await AdminNotification.find()
+      .sort({ createdAt: -1 })
+      .limit(200)
+      .lean();
+
+    const totalCount = await AdminNotification.countDocuments();
+    const unreadCount = await AdminNotification.countDocuments({ read: false });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        notifications,
+        stats: {
+          total: totalCount,
+          unread: unreadCount,
+          read: totalCount - unreadCount,
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Admin getAdminNotifications error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.markAdminNotificationRead = async (req, res) => {
+  try {
+    const notification = await AdminNotification.findByIdAndUpdate(
+      req.params.id,
+      { read: true },
+      { new: true }
+    ).lean();
+    if (!notification) {
+      return res.status(404).json({ success: false, message: 'Notification not found' });
+    }
+    res.status(200).json({ success: true, data: { notification } });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+exports.markAllAdminNotificationsRead = async (req, res) => {
+  try {
+    await AdminNotification.updateMany({ read: false }, { read: true });
+    res.status(200).json({ success: true, message: 'All notifications marked as read' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.deleteAdminNotification = async (req, res) => {
+  try {
+    const notification = await AdminNotification.findByIdAndDelete(req.params.id);
+    if (!notification) {
+      return res.status(404).json({ success: false, message: 'Notification not found' });
+    }
+    res.status(200).json({ success: true, message: 'Notification deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 exports.postFoodRecall = async (req, res) => {
   try {
     const { recallId, product, brand, category, reason, severity, recallDate, effectiveDate, issuedByAuthority, referenceNo, description, affectedRegion, affectedUsers, status } = req.body;
@@ -358,13 +439,13 @@ exports.postFoodRecall = async (req, res) => {
       category,
       reason,
       severity,
-      recallDate,
-      effectiveDate,
+      recallDate: recallDate || undefined,
+      effectiveDate: effectiveDate || undefined,
       issuedByAuthority,
       referenceNo,
       description,
       affectedRegion,
-      affectedUsers,
+      affectedUsers: affectedUsers === '' ? 0 : Number(affectedUsers),
       status,
       adminId: req.user._id
     });
@@ -372,7 +453,7 @@ exports.postFoodRecall = async (req, res) => {
     // Automatically post to community
     const recallMessage = await CommunityMessage.create({
       sender: req.user._id,
-      content: `FOOD RECALL: ${product} (${brand}) - ${reason}. ${description}`,
+      content: `FOOD RECALL: ${product} (${brand}) - ${reason}. ${description}`.substring(0, 500),
       type: 'food_recall',
       recallReference: newRecall._id
     });
@@ -389,6 +470,21 @@ exports.postFoodRecall = async (req, res) => {
     }));
     await Notification.insertMany(notifications);
 
+    // Admin notification: new food recall created
+    try {
+      await AdminNotification.create({
+        title: 'New Food Recall Created',
+        message: `Food recall "${recallId}" issued for ${product} (${brand}). Severity: ${severity}. Reason: ${reason}.`,
+        type: 'new_recall',
+        priority: 'High',
+        relatedModel: 'FoodRecall',
+        relatedId: newRecall._id,
+        metadata: { recallId, product, brand, severity, reason },
+      });
+    } catch (notifErr) {
+      console.error('Failed to create admin notification for food recall:', notifErr.message);
+    }
+
     await recallMessage.populate('sender', 'fullName avatar role');
     await recallMessage.populate('recallReference');
 
@@ -400,7 +496,8 @@ exports.postFoodRecall = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    console.error('Error posting food recall:', error);
+    res.status(400).json({ success: false, message: error.message, error });
   }
 };
 
@@ -414,6 +511,76 @@ exports.getFoodRecalls = async (req, res) => {
       }
     });
   } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.updateFoodRecall = async (req, res) => {
+  try {
+    const recall = await FoodRecall.findById(req.params.id);
+    if (!recall) {
+      return res.status(404).json({ success: false, message: 'Food recall not found' });
+    }
+
+    const allowedFields = ['product', 'brand', 'category', 'reason', 'severity', 'recallDate', 'effectiveDate', 'issuedByAuthority', 'referenceNo', 'description', 'affectedRegion', 'affectedUsers', 'status'];
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        if ((field === 'recallDate' || field === 'effectiveDate') && req.body[field] === '') {
+          recall[field] = undefined;
+        } else if (field === 'affectedUsers') {
+          recall[field] = req.body[field] === '' ? 0 : Number(req.body[field]);
+        } else {
+          recall[field] = req.body[field];
+        }
+      }
+    }
+
+    await recall.save();
+
+    // Update the community message if one exists
+    const existingMessage = await CommunityMessage.findOne({ recallReference: recall._id });
+    if (existingMessage) {
+      existingMessage.content = `FOOD RECALL: ${recall.product} (${recall.brand}) - ${recall.reason}. ${recall.description}`.substring(0, 500);
+      await existingMessage.save();
+    }
+
+    res.status(200).json({ success: true, data: { recall } });
+  } catch (error) {
+    console.error('Error updating food recall:', error);
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+exports.deleteFoodRecall = async (req, res) => {
+  try {
+    const recall = await FoodRecall.findById(req.params.id);
+    if (!recall) {
+      return res.status(404).json({ success: false, message: 'Food recall not found' });
+    }
+
+    const { product, brand, reason } = recall;
+
+    // Remove associated community message
+    await CommunityMessage.deleteMany({ recallReference: recall._id });
+
+    // Delete the recall
+    await FoodRecall.findByIdAndDelete(req.params.id);
+
+    // Notify all users that the recall has been removed
+    const allUsers = await User.find({}).select('_id');
+    const notifications = allUsers.map(u => ({
+      userId: u._id,
+      title: `Food Recall Removed: ${product}`,
+      message: `The food recall for ${brand} ${product} (Reason: ${reason}) has been removed as it was found to be a false recall.`,
+      type: 'recall',
+      relatedModel: 'FoodRecall',
+      relatedId: req.params.id
+    }));
+    await Notification.insertMany(notifications);
+
+    res.status(200).json({ success: true, message: 'Food recall deleted and users notified' });
+  } catch (error) {
+    console.error('Error deleting food recall:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

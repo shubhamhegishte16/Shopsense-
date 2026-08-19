@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { AlertTriangle, Copy, Edit3, Eye, Filter, MoreVertical, Plus, Search, ShieldCheck, Sprout, TimerReset, Trash2, UsersRound, X } from 'lucide-react';
 import AdminLayout from '../../components/Admin/AdminLayout';
@@ -10,7 +10,7 @@ function severityTone(severity) {
   return 'green';
 }
 
-function RecallDetailPanel({ recall, onClose }) {
+function RecallDetailPanel({ recall, onClose, onEdit }) {
   if (!recall) return null;
   return (
     <aside className="admin-detail-panel recall-detail-panel">
@@ -29,12 +29,6 @@ function RecallDetailPanel({ recall, onClose }) {
             <p>{recall.product}</p>
           </div>
         </div>
-        <div className="admin-tabs">
-          <button className="is-active">Overview</button>
-          <button>Affected Products</button>
-          <button>Affected Users</button>
-          <button>Timeline</button>
-        </div>
         <dl className="admin-detail-list recall-detail-list">
           <dt>Recall ID</dt><dd>{recall.recallId} <Copy size={15} /></dd>
           <dt>Product</dt><dd>{recall.product}</dd>
@@ -42,19 +36,18 @@ function RecallDetailPanel({ recall, onClose }) {
           <dt>Category</dt><dd>{recall.category}</dd>
           <dt>Reason</dt><dd>{recall.reason}</dd>
           <dt>Severity</dt><dd><StatusBadge tone={severityTone(recall.severity)}>{recall.severity}</StatusBadge></dd>
-          <dt>Recall Date</dt><dd>{recall.recallDate ? new Date(recall.recallDate).toLocaleDateString() : ''}</dd>
-          <dt>Effective Date</dt><dd>{recall.effectiveDate ? new Date(recall.effectiveDate).toLocaleDateString() : ''}</dd>
-          <dt>Issued By</dt><dd>{recall.issuedByAuthority}</dd>
-          <dt>Reference No.</dt><dd>{recall.referenceNo}</dd>
-          <dt>Description</dt><dd>{recall.description}</dd>
-          <dt>Affected Region</dt><dd>{recall.affectedRegion}</dd>
+          <dt>Recall Date</dt><dd>{recall.recallDate ? new Date(recall.recallDate).toLocaleDateString() : '—'}</dd>
+          <dt>Effective Date</dt><dd>{recall.effectiveDate ? new Date(recall.effectiveDate).toLocaleDateString() : '—'}</dd>
+          <dt>Issued By</dt><dd>{recall.issuedByAuthority || '—'}</dd>
+          <dt>Reference No.</dt><dd>{recall.referenceNo || '—'}</dd>
+          <dt>Affected Region</dt><dd>{recall.affectedRegion || '—'}</dd>
+          <dt>Affected Users</dt><dd>{recall.affectedUsers ?? 0}</dd>
+          <dt>Description</dt><dd>{recall.description || '—'}</dd>
         </dl>
         <div className="admin-detail-section">
           <h4>Actions</h4>
           <div className="admin-detail-actions recall-actions">
-            <AdminButton icon={Edit3}>Edit Recall</AdminButton>
-            <AdminButton icon={TimerReset}>Deactivate</AdminButton>
-            <AdminButton icon={Trash2}>Delete Recall</AdminButton>
+            <AdminButton icon={Edit3} onClick={onEdit}>Edit Recall</AdminButton>
           </div>
         </div>
       </div>
@@ -79,28 +72,28 @@ const initialRecallForm = {
   status: 'Active',
 };
 
-function AddRecallPanel({ form, onChange, onClose, onSubmit }) {
+function RecallFormPanel({ form, onChange, onClose, onSubmit, isEditing }) {
   const updateField = (field) => (event) => onChange({ ...form, [field]: event.target.value });
 
   return (
     <aside className="admin-detail-panel recall-detail-panel">
       <div className="admin-detail-header">
-        <h2>Add Recall</h2>
-        <button className="admin-icon-btn" type="button" aria-label="Close add recall form" onClick={onClose}><X size={18} /></button>
+        <h2>{isEditing ? 'Edit Recall' : 'Add Recall'}</h2>
+        <button className="admin-icon-btn" type="button" aria-label="Close form" onClick={onClose}><X size={18} /></button>
       </div>
       <form className="admin-detail-body admin-recall-form" onSubmit={onSubmit}>
         <div className="admin-recall-hero">
           <span className="admin-stat-icon tone-red"><ShieldCheck size={22} /></span>
           <div>
-            <h3>New Food Recall</h3>
-            <p>Create an alert for affected products and users.</p>
+            <h3>{isEditing ? 'Edit Food Recall' : 'New Food Recall'}</h3>
+            <p>{isEditing ? 'Update the recall details below.' : 'Create an alert for affected products and users.'}</p>
           </div>
         </div>
 
         <div className="admin-form-grid">
           <label>
             <span>Recall ID</span>
-            <input value={form.recallId} onChange={updateField('recallId')} placeholder="RC-2026-00025" required />
+            <input value={form.recallId} onChange={updateField('recallId')} placeholder="RC-2026-00025" required disabled={isEditing} style={isEditing ? { opacity: 0.6, cursor: 'not-allowed' } : {}} />
           </label>
           <label>
             <span>Status</span>
@@ -167,7 +160,9 @@ function AddRecallPanel({ form, onChange, onClose, onSubmit }) {
 
         <div className="admin-form-actions">
           <AdminButton onClick={onClose} type="button">Cancel</AdminButton>
-          <AdminButton icon={Plus} variant="primary" className="admin-wide-btn" type="submit">Add Recall</AdminButton>
+          <AdminButton icon={isEditing ? Edit3 : Plus} variant="primary" className="admin-wide-btn" type="submit">
+            {isEditing ? 'Save Changes' : 'Add Recall'}
+          </AdminButton>
         </div>
       </form>
     </aside>
@@ -175,28 +170,74 @@ function AddRecallPanel({ form, onChange, onClose, onSubmit }) {
 }
 
 function formatDate(dateValue) {
-  if (!dateValue) return 'Aug 15, 2026';
+  if (!dateValue) return '—';
   const date = new Date(dateValue);
   if (isNaN(date.getTime())) return dateValue;
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+function toDateInputValue(dateValue) {
+  if (!dateValue) return '';
+  const d = new Date(dateValue);
+  if (isNaN(d.getTime())) return '';
+  return d.toISOString().split('T')[0];
+}
+
+function ActionDropdown({ onRemove }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="admin-action-dropdown" ref={ref} style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(!open)} title="More actions"><MoreVertical size={16} /></button>
+      {open && (
+        <div className="admin-dropdown-menu" style={{
+          position: 'absolute', right: 0, top: '100%', zIndex: 20,
+          background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.10)', minWidth: 160, padding: '4px 0'
+        }}>
+          <button
+            className="admin-dropdown-item"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+              padding: '10px 16px', background: 'none', border: 'none',
+              cursor: 'pointer', fontSize: 14, color: '#dc2626', textAlign: 'left'
+            }}
+            onClick={() => { setOpen(false); onRemove(); }}
+          >
+            <Trash2 size={15} /> Remove Recall
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function FoodRecallManagement() {
   const [recalls, setRecalls] = useState([]);
-  const [panelMode, setPanelMode] = useState('details');
+  const [panelMode, setPanelMode] = useState('closed'); // 'closed' | 'details' | 'add' | 'edit'
   const [selectedRecall, setSelectedRecall] = useState(null);
+  const [editingRecallId, setEditingRecallId] = useState(null);
   const [form, setForm] = useState(initialRecallForm);
 
   useEffect(() => {
     fetchRecalls();
   }, []);
 
+  const token = () => localStorage.getItem('shopsense_token');
+  const authHeaders = () => ({ headers: { Authorization: `Bearer ${token()}` } });
+
   const fetchRecalls = async () => {
     try {
-      const token = localStorage.getItem('shopsense_token');
-      const res = await axios.get('http://localhost:5000/api/admin/community/food-recalls', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await axios.get('http://localhost:5000/api/admin/community/food-recalls', authHeaders());
       if (res.data.success) {
         setRecalls(res.data.data.recalls);
       }
@@ -208,17 +249,82 @@ export default function FoodRecallManagement() {
   const handleAddRecall = async (event) => {
     event.preventDefault();
     try {
-      const token = localStorage.getItem('shopsense_token');
-      await axios.post('http://localhost:5000/api/admin/community/food-recalls', form, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setForm({ ...initialRecallForm, recallId: `RC-2026-${String(recalls.length + 26).padStart(5, '0')}` });
-      setPanelMode('details');
+      await axios.post('http://localhost:5000/api/admin/community/food-recalls', form, authHeaders());
+      setPanelMode('closed');
+      setForm(initialRecallForm);
       fetchRecalls();
     } catch (err) {
       console.error('Failed to add recall', err);
-      alert('Failed to add food recall');
+      alert('Failed to add food recall: ' + (err.response?.data?.message || err.message));
     }
+  };
+
+  const handleEditRecall = async (event) => {
+    event.preventDefault();
+    try {
+      await axios.put(`http://localhost:5000/api/admin/community/food-recalls/${editingRecallId}`, form, authHeaders());
+      setPanelMode('closed');
+      setEditingRecallId(null);
+      setForm(initialRecallForm);
+      fetchRecalls();
+    } catch (err) {
+      console.error('Failed to update recall', err);
+      alert('Failed to update food recall: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
+  const handleDeleteRecall = async (recall) => {
+    if (!window.confirm(`Are you sure you want to remove the recall "${recall.recallId} - ${recall.product}"?\n\nAll users will be notified that this was a false recall.`)) return;
+    try {
+      await axios.delete(`http://localhost:5000/api/admin/community/food-recalls/${recall._id}`, authHeaders());
+      // If the deleted recall was being viewed, close the panel
+      if (selectedRecall && selectedRecall._id === recall._id) {
+        setSelectedRecall(null);
+        setPanelMode('closed');
+      }
+      fetchRecalls();
+    } catch (err) {
+      console.error('Failed to delete recall', err);
+      alert('Failed to delete food recall: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
+  const openViewPanel = (recall) => {
+    setSelectedRecall(recall);
+    setPanelMode('details');
+  };
+
+  const openEditPanel = (recall) => {
+    setEditingRecallId(recall._id);
+    setForm({
+      recallId: recall.recallId || '',
+      product: recall.product || '',
+      brand: recall.brand || '',
+      category: recall.category || '',
+      reason: recall.reason || '',
+      severity: recall.severity || 'High',
+      recallDate: toDateInputValue(recall.recallDate),
+      effectiveDate: toDateInputValue(recall.effectiveDate),
+      issuedByAuthority: recall.issuedByAuthority || '',
+      referenceNo: recall.referenceNo || '',
+      description: recall.description || '',
+      affectedRegion: recall.affectedRegion || '',
+      affectedUsers: recall.affectedUsers != null ? String(recall.affectedUsers) : '',
+      status: recall.status || 'Active',
+    });
+    setPanelMode('edit');
+  };
+
+  const openAddPanel = () => {
+    setEditingRecallId(null);
+    setForm({ ...initialRecallForm, recallId: `RC-2026-${String(recalls.length + 26).padStart(5, '0')}` });
+    setPanelMode('add');
+  };
+
+  const closePanel = () => {
+    setPanelMode('closed');
+    setSelectedRecall(null);
+    setEditingRecallId(null);
   };
 
   const activeCount = recalls.filter(r => r.status === 'Active').length;
@@ -232,6 +338,15 @@ export default function FoodRecallManagement() {
     [UsersRound, 'Affected Users', String(affectedUsersCount), '', 'teal'],
   ];
 
+  let detailPanel = null;
+  if (panelMode === 'details') {
+    detailPanel = <RecallDetailPanel recall={selectedRecall} onClose={closePanel} onEdit={() => { if (selectedRecall) openEditPanel(selectedRecall); }} />;
+  } else if (panelMode === 'add') {
+    detailPanel = <RecallFormPanel form={form} onChange={setForm} onClose={closePanel} onSubmit={handleAddRecall} isEditing={false} />;
+  } else if (panelMode === 'edit') {
+    detailPanel = <RecallFormPanel form={form} onChange={setForm} onClose={closePanel} onSubmit={handleEditRecall} isEditing={true} />;
+  }
+
   return (
     <AdminLayout
       title="Food Recall Management"
@@ -240,12 +355,10 @@ export default function FoodRecallManagement() {
         <>
           <label className="admin-search product-search"><Search size={19} /><input placeholder="Search by product, brand, recall ID..." /></label>
           <AdminButton icon={Filter}>Filter</AdminButton>
-          <AdminButton icon={Plus} variant="primary" onClick={() => setPanelMode('form')}>Add Recall</AdminButton>
+          <AdminButton icon={Plus} variant="primary" onClick={openAddPanel}>Add Recall</AdminButton>
         </>
       )}
-      detailPanel={panelMode === 'form'
-        ? <AddRecallPanel form={form} onChange={setForm} onClose={() => setPanelMode('details')} onSubmit={handleAddRecall} />
-        : <RecallDetailPanel recall={selectedRecall} onClose={() => setSelectedRecall(null)} />}
+      detailPanel={detailPanel}
     >
       <div className="admin-stat-grid recall-stat-grid">
         {stats.map(([icon, label, value, trend, tone]) => (
@@ -277,9 +390,9 @@ export default function FoodRecallManagement() {
                   <td>{recall.affectedUsers}</td>
                   <td>
                     <div className="admin-row-actions">
-                      <button onClick={() => { setSelectedRecall(recall); setPanelMode('details'); }}><Eye size={16} /></button>
-                      <button><Edit3 size={16} /></button>
-                      <button><MoreVertical size={16} /></button>
+                      <button onClick={() => openViewPanel(recall)} title="View details"><Eye size={16} /></button>
+                      <button onClick={() => openEditPanel(recall)} title="Edit recall"><Edit3 size={16} /></button>
+                      <ActionDropdown onRemove={() => handleDeleteRecall(recall)} />
                     </div>
                   </td>
                 </tr>

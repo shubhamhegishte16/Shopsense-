@@ -40,6 +40,7 @@ export default function FrameSequence({ scrollProgress }) {
 
       if (img && img.complete) {
         const canvas = canvasRef.current
+        if (!canvas) return
         const { width, height } = canvas.getBoundingClientRect()
         
         // Match canvas internal resolution to display size

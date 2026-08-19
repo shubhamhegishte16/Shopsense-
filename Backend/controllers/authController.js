@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const AdminNotification = require("../models/AdminNotification");
 
 // â”€â”€â”€ Helper: generate JWT token â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const generateToken = (id) => {
@@ -51,6 +52,21 @@ const signup = async (req, res) => {
     const user = await User.create({ fullName, email, password });
     user.lastLogin = new Date();
     await user.save({ validateBeforeSave: false });
+
+    // Admin notification: new user registered
+    try {
+      await AdminNotification.create({
+        title: 'New User Registered',
+        message: `${fullName} (${email}) has created an account.`,
+        type: 'new_user',
+        priority: 'Medium',
+        relatedModel: 'User',
+        relatedId: user._id,
+        metadata: { userName: fullName, userEmail: email },
+      });
+    } catch (notifErr) {
+      console.error('Failed to create admin notification for new user:', notifErr.message);
+    }
 
     sendTokenResponse(user, 201, res, "Account created successfully! Welcome to ShopSense AI.");
   } catch (error) {
