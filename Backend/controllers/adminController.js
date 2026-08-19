@@ -3,6 +3,11 @@ const User = require('../models/User');
 const Receipt = require('../models/Receipt');
 const Notification = require('../models/Notification');
 const AdminNotification = require('../models/AdminNotification');
+const Product = require('../models/Product');
+const PantryItem = require('../models/PantryItem');
+const FoodRecall = require('../models/FoodRecall');
+const IssueReport = require('../models/IssueReport');
+const CommunityMessage = require('../models/CommunityMessage');
 
 function escapeRegex(value = '') {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -207,7 +212,7 @@ exports.addReceiptNote = async (req, res) => {
   }
 };
 
-const Product = require('../models/Product'); // I need to make sure this is required at the top
+
 
 exports.getProducts = async (req, res) => {
   try {
@@ -315,9 +320,7 @@ exports.deleteProduct = async (req, res) => {
   }
 };
 
-const CommunityMessage = require('../models/CommunityMessage');
-const IssueReport = require('../models/IssueReport');
-const FoodRecall = require('../models/FoodRecall');
+
 
 exports.getAllCommunityMessages = async (req, res) => {
   try {
@@ -627,4 +630,550 @@ exports.updateIssue = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+
+// ─── Admin Profile ──────────────────────────────────────────────────────────
+
+exports.getAdminProfile = async (req, res) => {
+  try {
+    const admin = await User.findById(req.user._id);
+    if (!admin) {
+      return res.status(404).json({ success: false, message: 'Admin not found' });
+    }
+    res.status(200).json({ success: true, data: { profile: admin.toSafeObject() } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.updateAdminProfile = async (req, res) => {
+  try {
+    const { fullName, email, phone, employeeId, dateOfBirth, department, language } = req.body;
+
+    const admin = await User.findById(req.user._id);
+    if (!admin) {
+      return res.status(404).json({ success: false, message: 'Admin not found' });
+    }
+
+    if (fullName) admin.fullName = fullName;
+    if (email) admin.email = email;
+    if (phone !== undefined) admin.phone = phone;
+    if (employeeId !== undefined) admin.employeeId = employeeId;
+    if (dateOfBirth !== undefined) admin.dateOfBirth = dateOfBirth;
+    if (department !== undefined) admin.department = department;
+    
+    if (language) {
+      if (!admin.settings) admin.settings = {};
+      if (!admin.settings.general) admin.settings.general = {};
+      admin.settings.general.language = language;
+    }
+
+    await admin.save({ validateBeforeSave: false });
+
+    res.status(200).json({ success: true, message: 'Profile updated successfully', data: { profile: admin.toSafeObject() } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.updateAdminPreferences = async (req, res) => {
+  try {
+    const { theme, defaultView, itemsPerPage, timeFormat, dateFormat } = req.body;
+
+    const admin = await User.findById(req.user._id);
+    if (!admin) {
+      return res.status(404).json({ success: false, message: 'Admin not found' });
+    }
+
+    if (!admin.settings) admin.settings = {};
+    if (!admin.settings.general) admin.settings.general = {};
+    if (!admin.settings.displayPreferences) admin.settings.displayPreferences = {};
+
+    if (theme) admin.settings.general.theme = theme;
+    if (timeFormat) admin.settings.general.timeFormat = timeFormat;
+    if (dateFormat) admin.settings.general.dateFormat = dateFormat;
+    if (defaultView) admin.settings.displayPreferences.defaultView = defaultView;
+    if (itemsPerPage) admin.settings.displayPreferences.itemsPerPage = itemsPerPage;
+
+    await admin.save({ validateBeforeSave: false });
+
+    res.status(200).json({ success: true, message: 'Preferences updated successfully', data: { profile: admin.toSafeObject() } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.changeAdminPassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Current and new passwords are required' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: 'New password must be at least 6 characters' });
+    }
+
+    const admin = await User.findById(req.user._id).select('+password');
+    if (!admin) {
+      return res.status(404).json({ success: false, message: 'Admin not found' });
+    }
+
+    const isMatch = await admin.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: 'Incorrect current password' });
+    }
+
+    admin.password = newPassword;
+    await admin.save(); // password will be hashed by the pre-save hook
+
+    res.status(200).json({ success: true, message: 'Password updated successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── Admin Dashboard Stats ───────────────────────────────────────────────────
+
+exports.getDashboardStats = async (req, res) => {
+  try {
+    const now = new Date();
+    const sevenDaysAgo = new Date(now);
+    sevenDaysAgo.setDate(now.getDate() - 7);
+
+    // ── 1. Run all DB queries in parallel ────────────────────────────────────
+    const [
+      totalUsers,
+      newUsers,
+      totalReceipts,
+      processedReceipts,
+      failedReceipts,
+      totalProducts,
+      activeRecalls,
+      openIssues,
+      userGrowthRaw,
+      receiptStatusRaw,
+      topCategoriesRaw,
+      recentIssues,
+      recentActivity,
+    ] = await Promise.all([
+      // Stat cards
+      User.countDocuments({ role: 'user' }),
+      User.countDocuments({ role: 'user', createdAt: { $gte: sevenDaysAgo } }),
+      Receipt.countDocuments(),
+      Receipt.countDocuments({ status: 'processed' }),
+      Receipt.countDocuments({ status: 'flagged' }),
+      Product.countDocuments(),
+      FoodRecall.countDocuments({ status: 'Active' }),
+      IssueReport.countDocuments({ status: 'pending' }),
+
+      // User growth: count signups per day for last 7 days
+      User.aggregate([
+        { $match: { createdAt: { $gte: sevenDaysAgo }, role: 'user' } },
+        {
+          $group: {
+            _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ]),
+
+      // Receipt processing donut
+      Receipt.aggregate([
+        {
+          $group: {
+            _id: '$status',
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+
+      // Top 5 pantry categories (most purchased)
+      PantryItem.aggregate([
+        { $match: { category: { $exists: true, $ne: null, $ne: '' } } },
+        { $group: { _id: '$category', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 5 },
+      ]),
+
+      // Recent community issues (last 4 pending/reviewed)
+      IssueReport.find({ status: { $in: ['pending', 'reviewed'] } })
+        .sort({ createdAt: -1 })
+        .limit(4)
+        .populate('user', 'fullName')
+        .lean(),
+
+      // Recent activity from admin notifications
+      AdminNotification.find()
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .lean(),
+    ]);
+
+    // ── 2. Build User Growth chart data ─────────────────────────────────────
+    // Create a day-by-day map for last 7 days
+    const growthMap = {};
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - i);
+      const key = d.toISOString().split('T')[0];
+      growthMap[key] = 0;
+    }
+    userGrowthRaw.forEach(({ _id, count }) => {
+      if (_id in growthMap) growthMap[_id] = count;
+    });
+    const userGrowth = Object.entries(growthMap).map(([date, count]) => ({
+      date,
+      count,
+    }));
+
+    // ── 3. Build Receipt donut data ──────────────────────────────────────────
+    const receiptStatusMap = { processed: 0, pending: 0, flagged: 0 };
+    receiptStatusRaw.forEach(({ _id, count }) => {
+      if (_id in receiptStatusMap) receiptStatusMap[_id] = count;
+    });
+    const total = totalReceipts || 1; // avoid division by zero
+    const receiptDonut = {
+      processed: {
+        count: receiptStatusMap.processed,
+        pct: ((receiptStatusMap.processed / total) * 100).toFixed(1),
+      },
+      pending: {
+        count: receiptStatusMap.pending,
+        pct: ((receiptStatusMap.pending / total) * 100).toFixed(1),
+      },
+      failed: {
+        count: receiptStatusMap.flagged,
+        pct: ((receiptStatusMap.flagged / total) * 100).toFixed(1),
+      },
+    };
+
+    // ── 4. Build Top Categories data ─────────────────────────────────────────
+    const totalPantryItems = topCategoriesRaw.reduce((sum, c) => sum + c.count, 0) || 1;
+    const topCategories = topCategoriesRaw.map(({ _id, count }) => ({
+      name: _id,
+      count,
+      pct: ((count / totalPantryItems) * 100).toFixed(1),
+    }));
+
+    // ── 5. Format recent issues ───────────────────────────────────────────────
+    const formattedIssues = recentIssues.map((issue) => ({
+      id: `#CI-${issue._id.toString().slice(-4).toUpperCase()}`,
+      description: issue.issueDescription?.substring(0, 40) + '...' || 'No description',
+      category: issue.category || 'General',
+      priority: issue.priority || 'Medium',
+      status: issue.status === 'pending' ? 'Open' : issue.status === 'reviewed' ? 'In Progress' : 'Resolved',
+      createdAt: issue.createdAt,
+      userName: issue.user?.fullName || 'Unknown User',
+    }));
+
+    // ── 6. Format recent activity ─────────────────────────────────────────────
+    const typeIconMap = {
+      new_user: 'user',
+      new_receipt: 'receipt',
+      new_product: 'product',
+      new_recall: 'recall',
+      system: 'system',
+    };
+    const formattedActivity = recentActivity.map((n) => ({
+      id: n._id,
+      title: n.title,
+      message: n.message,
+      type: n.type,
+      icon: typeIconMap[n.type] || 'system',
+      createdAt: n.createdAt,
+    }));
+
+    // ── 7. System status check ────────────────────────────────────────────────
+    const mongoStatus = mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected';
+    const systemStatus = [
+      { name: 'MongoDB', status: mongoStatus },
+      { name: 'AI Service (Gemini)', status: process.env.GEMINI_API_KEY ? 'Connected' : 'Not Configured' },
+      { name: 'Receipt Processing', status: processedReceipts > 0 ? 'Operational' : 'Idle' },
+      { name: 'Cloudinary (Storage)', status: process.env.CLOUDINARY_CLOUD_NAME ? 'Connected' : 'Not Configured' },
+      { name: 'Email Service', status: 'Connected' },
+    ];
+
+    // ── 8. AI metrics (estimated from receipt data) ───────────────────────────
+    const aiRequests = totalReceipts;
+    const aiSuccessRate = totalReceipts > 0
+      ? ((processedReceipts / totalReceipts) * 100).toFixed(1)
+      : '0.0';
+
+    res.status(200).json({
+      success: true,
+      data: {
+        stats: {
+          totalUsers,
+          newUsers,
+          totalReceipts,
+          processedReceipts,
+          failedReceipts,
+          totalProducts,
+          activeRecalls,
+          openIssues,
+          aiRequests,
+          aiSuccessRate,
+        },
+        userGrowth,
+        receiptDonut,
+        topCategories,
+        recentIssues: formattedIssues,
+        recentActivity: formattedActivity,
+        systemStatus,
+      },
+    });
+  } catch (error) {
+    console.error('getDashboardStats error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── Reports & Analytics ─────────────────────────────────────────────────────
+
+exports.getReportsAnalytics = async (req, res) => {
+  try {
+    const now = new Date();
+    const sevenDaysAgo = new Date(now);
+    sevenDaysAgo.setDate(now.getDate() - 7);
+    const fourteenDaysAgo = new Date(now);
+    fourteenDaysAgo.setDate(now.getDate() - 14);
+
+    const [
+      totalUsers,
+      totalReceipts,
+      totalProducts,
+      totalRecalls,
+      // Amount analyzed: sum of all receipt totalAmounts
+      amountResult,
+      // Receipts per day for line chart (last 7 days)
+      receiptsPerDay,
+      // Product categories donut
+      productCategories,
+      // User growth per day (last 7 days)
+      userGrowthRaw,
+      // Top active users (most receipts scanned)
+      topActiveUsersRaw,
+      // Recall alerts per day (last 7 days)
+      recallsPerDay,
+      // Previous period totals for trend calculation
+      prevPeriodUsers,
+      prevPeriodReceipts,
+      prevPeriodRecalls,
+    ] = await Promise.all([
+      User.countDocuments({ role: 'user' }),
+      Receipt.countDocuments(),
+      Product.countDocuments(),
+      FoodRecall.countDocuments(),
+
+      // Sum all receipt amounts
+      Receipt.aggregate([
+        { $group: { _id: null, total: { $sum: '$totalAmount' } } },
+      ]),
+
+      // Receipts uploaded per day for last 7 days
+      Receipt.aggregate([
+        { $match: { createdAt: { $gte: sevenDaysAgo } } },
+        {
+          $group: {
+            _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+            count: { $sum: 1 },
+            totalAmount: { $sum: '$totalAmount' },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ]),
+
+      // Product categories from pantry items
+      PantryItem.aggregate([
+        { $match: { category: { $exists: true, $ne: null, $ne: '' } } },
+        { $group: { _id: '$category', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 6 },
+      ]),
+
+      // User signups per day last 7 days
+      User.aggregate([
+        { $match: { createdAt: { $gte: sevenDaysAgo }, role: 'user' } },
+        {
+          $group: {
+            _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ]),
+
+      // Top 5 active users by number of receipts
+      Receipt.aggregate([
+        {
+          $group: {
+            _id: '$userId',
+            receiptCount: { $sum: 1 },
+            totalSpent: { $sum: '$totalAmount' },
+          },
+        },
+        { $sort: { receiptCount: -1 } },
+        { $limit: 5 },
+        {
+          $lookup: {
+            from: 'users',
+            localField: '_id',
+            foreignField: '_id',
+            as: 'userInfo',
+          },
+        },
+        { $unwind: { path: '$userInfo', preserveNullAndEmptyArrays: true } },
+        {
+          $project: {
+            receiptCount: 1,
+            totalSpent: 1,
+            fullName: '$userInfo.fullName',
+          },
+        },
+      ]),
+
+      // Recall alerts per day (last 7 days)
+      FoodRecall.aggregate([
+        { $match: { createdAt: { $gte: sevenDaysAgo } } },
+        {
+          $group: {
+            _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ]),
+
+      // Previous 7-day window for trend % calculation
+      User.countDocuments({ role: 'user', createdAt: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo } }),
+      Receipt.countDocuments({ createdAt: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo } }),
+      FoodRecall.countDocuments({ createdAt: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo } }),
+    ]);
+
+    // ── Build day-by-day maps for 7 days ──────────────────────────────────────
+    function buildDayMap(raw, field = 'count') {
+      const map = {};
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(now.getDate() - i);
+        map[d.toISOString().split('T')[0]] = 0;
+      }
+      raw.forEach((r) => { if (r._id in map) map[r._id] = r[field] || 0; });
+      return Object.entries(map).map(([date, value]) => ({ date, value }));
+    }
+
+    const receiptsChart = buildDayMap(receiptsPerDay);
+    const userGrowthChart = buildDayMap(userGrowthRaw);
+    const recallsChart = buildDayMap(recallsPerDay);
+
+    // ── Product categories donut ───────────────────────────────────────────────
+    const categoryColors = ['#16A34A', '#FACC15', '#60A5FA', '#A855F7', '#EC4899', '#CBD5E1'];
+    const totalCategoryItems = productCategories.reduce((s, c) => s + c.count, 0) || 1;
+    const categoryDonut = productCategories.map(({ _id, count }, i) => ({
+      name: _id,
+      count,
+      pct: ((count / totalCategoryItems) * 100).toFixed(1),
+      color: categoryColors[i % categoryColors.length],
+    }));
+
+    // ── Top users ─────────────────────────────────────────────────────────────
+    const topUsers = topActiveUsersRaw.map((u) => ({
+      name: u.fullName || 'Unknown',
+      receiptCount: u.receiptCount,
+      totalSpent: (u.totalSpent || 0).toFixed(0),
+      initials: (u.fullName || 'U').split(' ').map((p) => p[0]).join('').toUpperCase(),
+    }));
+
+    // ── Trend % helpers ───────────────────────────────────────────────────────
+    function trendPct(current, previous) {
+      if (!previous) return current > 0 ? '+100%' : '0%';
+      const pct = (((current - previous) / previous) * 100).toFixed(1);
+      return (pct >= 0 ? '+' : '') + pct + '%';
+    }
+
+    const currentPeriodUsers = await User.countDocuments({ role: 'user', createdAt: { $gte: sevenDaysAgo } });
+    const currentPeriodReceipts = await Receipt.countDocuments({ createdAt: { $gte: sevenDaysAgo } });
+    const currentPeriodRecalls = await FoodRecall.countDocuments({ createdAt: { $gte: sevenDaysAgo } });
+
+    const totalAmountRaw = amountResult[0]?.total || 0;
+    const formattedAmount = totalAmountRaw >= 10000000
+      ? `₹${(totalAmountRaw / 10000000).toFixed(2)} Cr`
+      : totalAmountRaw >= 100000
+      ? `₹${(totalAmountRaw / 100000).toFixed(2)} L`
+      : `₹${totalAmountRaw.toFixed(0)}`;
+
+    // ── Reports summary table (one row per analytics category) ───────────────
+    const reportsSummary = [
+      {
+        name: 'User Analytics Report',
+        category: 'User Analytics',
+        period: 'Last 7 Days',
+        generatedOn: new Date().toLocaleString(),
+        generatedBy: 'System',
+        stats: { count: totalUsers, trend: trendPct(currentPeriodUsers, prevPeriodUsers) },
+      },
+      {
+        name: 'Receipt Analytics Report',
+        category: 'Receipt Analytics',
+        period: 'Last 7 Days',
+        generatedOn: new Date().toLocaleString(),
+        generatedBy: 'System',
+        stats: { count: totalReceipts, trend: trendPct(currentPeriodReceipts, prevPeriodReceipts) },
+      },
+      {
+        name: 'Product Analytics Report',
+        category: 'Product Analytics',
+        period: 'All Time',
+        generatedOn: new Date().toLocaleString(),
+        generatedBy: 'System',
+        stats: { count: totalProducts, trend: '+0%' },
+      },
+      {
+        name: 'Food Recall Analytics Report',
+        category: 'Food Recall Analytics',
+        period: 'Last 7 Days',
+        generatedOn: new Date().toLocaleString(),
+        generatedBy: 'Admin',
+        stats: { count: totalRecalls, trend: trendPct(currentPeriodRecalls, prevPeriodRecalls) },
+      },
+      {
+        name: 'Amount Analysis Report',
+        category: 'Financial Analytics',
+        period: 'All Time',
+        generatedOn: new Date().toLocaleString(),
+        generatedBy: 'System',
+        stats: { count: totalAmountRaw, trend: '+0%' },
+      },
+    ];
+
+    res.status(200).json({
+      success: true,
+      data: {
+        stats: {
+          totalUsers,
+          totalReceipts,
+          totalProducts,
+          totalRecalls,
+          totalAmount: formattedAmount,
+          userTrend: trendPct(currentPeriodUsers, prevPeriodUsers),
+          receiptTrend: trendPct(currentPeriodReceipts, prevPeriodReceipts),
+          recallTrend: trendPct(currentPeriodRecalls, prevPeriodRecalls),
+        },
+        receiptsChart,
+        userGrowthChart,
+        recallsChart,
+        categoryDonut,
+        topUsers,
+        reportsSummary,
+      },
+    });
+  } catch (error) {
+    console.error('getReportsAnalytics error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
 
