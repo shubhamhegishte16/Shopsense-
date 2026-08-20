@@ -426,6 +426,7 @@ body {
   flex-direction: column;
   gap: 22px;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .user-sidebar-brand,
@@ -486,6 +487,22 @@ body {
   flex-direction: column;
   gap: 6px;
   min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(21, 69, 57, 0.15) transparent;
+}
+
+.user-sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.user-sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.user-sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(21, 69, 57, 0.15);
+  border-radius: 4px;
 }
 
 .user-sidebar-link {
@@ -522,6 +539,7 @@ body {
 .user-sidebar-footer {
   padding-top: 16px;
   border-top: 1px solid #EEF2F0;
+  flex-shrink: 0;
 }
 
 .user-sidebar-user {
@@ -538,6 +556,7 @@ body {
 .user-sidebar-user span:nth-child(2) {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
 }
 
 .user-sidebar-user strong,
@@ -548,6 +567,9 @@ body {
 .user-sidebar-user strong {
   font-size: 14px;
   color: #0F172A;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .user-sidebar-user small {
@@ -917,6 +939,7 @@ body {
   flex-direction: column;
   gap: 22px;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .admin-sidebar-brand,
@@ -977,6 +1000,22 @@ body {
   flex-direction: column;
   gap: 6px;
   min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(21, 69, 57, 0.15) transparent;
+}
+
+.admin-sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.admin-sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(21, 69, 57, 0.15);
+  border-radius: 4px;
 }
 
 .admin-sidebar-link {
@@ -1013,6 +1052,7 @@ body {
 .admin-sidebar-footer {
   padding-top: 16px;
   border-top: 1px solid #EEF2F0;
+  flex-shrink: 0;
 }
 
 .admin-sidebar-user {
@@ -1027,6 +1067,14 @@ body {
 
 .admin-sidebar-user span:nth-child(2) {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.admin-sidebar-user strong {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .admin-sidebar-user strong,
